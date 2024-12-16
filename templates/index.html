@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios de Automação</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            background-color: #f4f5f7;
+        }
+
+        /* Barra lateral */
+        .sidebar {
+            width: 250px;
+            background-color: #004c97;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 20px;
+            padding-left: 20px;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 30px;
+            font-size: 1.5rem;
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .sidebar a:hover {
+            background-color: #003b7d;
+        }
+
+        /* Conteúdo principal */
+        .main-content {
+            margin-left: 270px; /* Espaço para a barra lateral */
+            width: calc(100% - 270px);
+            padding: 20px;
+        }
+
+        header {
+            background-color: #004c97;
+            color: #fff;
+            padding: 10px 20px;
+            text-align: center;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #004c97;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f2f2f2;
+        }
+
+        .status-completed {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            color: orange;
+            font-weight: bold;
+        }
+
+        .status-failed {
+            color: red;
+            font-weight: bold;
+        }
+
+        .report-button {
+            padding: 8px 15px;
+            background-color: #004c97;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .report-button:hover {
+            background-color: #003b7d;
+        }
+
+        /* Controle de paginação */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination span {
+            font-size: 1.2rem;
+            margin: 0 20px;
+            cursor: pointer;
+        }
+
+        .pagination span:hover {
+            color: #004c97;
+        }
+
+        .pagination .disabled {
+            color: #ddd;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Barra lateral -->
+    <div class="sidebar">
+        <h2>Idwall Test Guard</h2>
+        <a href="#" onclick="loadReports()">Relatórios de Automação</a>
+        <a href="outra_pagina.html">Outras Páginas</a>
+        <!-- Adicione mais links conforme necessário -->
+    </div>
+
+    <!-- Conteúdo principal -->
+    <div class="main-content">
+
+        <div class="container">
+            <h2>Lista de Relatórios</h2>
+            <table id="reportTable">
+                <thead>
+                    <tr>
+                        <th>ID Report</th>
+                        <th>Nome da Automação</th>
+                        <th>Data do Relatório</th>
+                        <th>Squad</th>
+                        <th>Status</th>
+                        <th>Relatorio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- As linhas da tabela serão preenchidas dinamicamente aqui -->
+                </tbody>
+            </table>
+
+            <!-- Paginação -->
+            <div class="pagination" id="paginationControls">
+                <span id="prevPage" class="disabled">← Anterior</span>
+                <span id="currentPageDisplay">Página 1</span>
+                <span id="nextPage">Próxima →</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const reportsPerPage = 10;
+
+        // Função para formatar a data em um formato mais legível
+        function formatDate(dateStr) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' };
+            return new Date(dateStr).toLocaleDateString('pt-BR', options);
+        }
+
+        // Função para carregar os dados da API e preencher a tabela
+        async function loadReports() {
+            try {
+                const response = await fetch(`/reports/paginated?page=${currentPage}&per_page=${reportsPerPage}`);
+                const data = await response.json();
+
+                if (data.length === 0 && currentPage > 1) {
+                    // Se não houver dados e a página for maior que 1, retorna para a última página com dados
+                    currentPage--;
+                    loadReports();
+                    return;
+                }
+
+                const tableBody = document.querySelector('#reportTable tbody');
+                tableBody.innerHTML = ''; // Limpa as linhas da tabela antes de adicionar os dados
+
+                data.forEach(report => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${report.id_report}</td>
+                        <td>${report.name}</td>
+                        <td>${formatDate(report.report_date)}</td>
+                        <td>${report.squad}</td>
+                        <td class="status-${report.status}">${report.status}</td>
+                        <td><a href="${report.url_report}" class="report-button" target="_blank">Abrir Relatório</a></td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Atualiza a navegação e a página
+                updatePagination();
+            } catch (error) {
+                console.error('Erro ao carregar os relatórios:', error);
+            }
+        }
+
+        // Função para atualizar os controles de navegação
+        function updatePagination() {
+            const prevPage = document.getElementById('prevPage');
+            const nextPage = document.getElementById('nextPage');
+            const currentPageDisplay = document.getElementById('currentPageDisplay');
+
+            // Atualiza a exibição da página atual
+            currentPageDisplay.textContent = `Página ${currentPage}`;
+
+            // Ativa ou desativa a seta de "Anterior"
+            if (currentPage > 1) {
+                prevPage.classList.remove('disabled');
+                prevPage.onclick = () => {
+                    currentPage--;
+                    loadReports();
+                };
+            } else {
+                prevPage.classList.add('disabled');
+                prevPage.onclick = null;
+            }
+
+            // Verifica se há mais dados para carregar e ativa ou desativa a seta "Próxima"
+            nextPage.classList.remove('disabled');
+            nextPage.onclick = () => {
+                currentPage++;
+                loadReports();
+            };
+        }
+
+        // Carrega os relatórios quando a página for carregada
+        window.onload = loadReports;
+    </script>
+</body>
+</html>
