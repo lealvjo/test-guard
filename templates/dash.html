@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Automação de Testes</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+        .dashboard {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .test-status {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        .completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .failed {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .summary {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+        }
+        .summary div {
+            font-size: 18px;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #f0f0f0;
+        }
+        canvas {
+            max-width: 100%;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dashboard de Automação de Testes</h1>
+
+    <!-- Resumo de Testes -->
+    <div class="summary">
+        <div><strong>Total de Testes Executados:</strong> <span id="total-executed">0</span></div>
+        <div><strong>Status Completo:</strong> <span id="status-completed">0</span></div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="dashboard">
+        <h2>Distribuição dos Status dos Testes</h2>
+        <canvas id="statusPieChart"></canvas>
+
+        <h2>Quantidade de Execuções</h2>
+        <canvas id="executionBarChart"></canvas>
+    </div>
+
+    <script>
+        // Função para buscar os dados do endpoint
+        async function fetchTestReports() {
+            try {
+                const response = await fetch('/reports'); // Supondo que o endpoint seja '/reports'
+                const data = await response.json(); // Parseando os dados JSON retornados
+                return data;
+            } catch (error) {
+                console.error("Erro ao buscar os dados: ", error);
+            }
+        }
+
+        // Função para processar os dados dos testes
+        async function processTestData() {
+            const testResults = await fetchTestReports();
+            if (!testResults) return;
+
+            // Inicializando as variáveis de contagem
+            let passed = 0;
+            let failed = 0;
+
+            // Contando os status
+            testResults.forEach(test => {
+                if (test.status === "completed") {
+                    passed++;
+                } else if (test.status === "failed") {
+                    failed++;
+                }
+            });
+
+            // Atualizando o resumo na interface
+            document.getElementById('total-executed').textContent = testResults.length;
+            document.getElementById('status-completed').textContent = passed;
+
+            // Renderizando o gráfico de Pizza (Status dos Testes)
+            renderPieChart(passed, failed);
+
+            // Renderizando o gráfico de Barras (Quantidade de Execuções)
+            renderBarChart(testResults.length);
+        }
+
+        // Função para renderizar o gráfico de Pizza (Status dos Testes)
+        function renderPieChart(passed, failed) {
+            const ctxPie = document.getElementById('statusPieChart').getContext('2d');
+            const statusPieChart = new Chart(ctxPie, {
+                type: 'pie',
+                data: {
+                    labels: ['Passaram', 'Falharam'],
+                    datasets: [{
+                        label: 'Status dos Testes',
+                        data: [passed, failed],
+                        backgroundColor: ['#4CAF50', '#F44336'], // Verde para passados e vermelho para falhados
+                        borderColor: ['#388E3C', '#C62828'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return tooltipItem.label + ': ' + tooltipItem.raw + ' testes';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Função para renderizar o gráfico de Barras (Quantidade de Execuções)
+        function renderBarChart(totalExecutions) {
+            const ctxBar = document.getElementById('executionBarChart').getContext('2d');
+            const executionBarChart = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Execuções'],
+                    datasets: [{
+                        label: 'Total de Execuções',
+                        data: [totalExecutions],
+                        backgroundColor: '#42A5F5',
+                        borderColor: '#1E88E5',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Iniciando o processo de renderização dos dados e gráficos
+        processTestData();
+    </script>
+</body>
+</html>
