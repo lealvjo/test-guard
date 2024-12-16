@@ -1,3 +1,4 @@
+from collections import Counter
 from datetime import datetime
 
 from flask import Blueprint, request, jsonify, render_template
@@ -9,9 +10,11 @@ report_controller = Blueprint('report_controller', __name__)
 automation_service = AutomationService()
 report_service = ReportService()
 
+
 @report_controller.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('dash.html')
+
 
 @report_controller.route('/report', methods=['POST'])
 def register_automation():
@@ -37,6 +40,7 @@ def register_automation():
 
     return jsonify(response), 201
 
+
 @report_controller.route('/reports', methods=['GET'])
 def get_all_reports():
     automations = report_service.fetch_all_reports()
@@ -49,3 +53,28 @@ def get_paginated_reports():
     per_page = int(request.args.get('per_page', 10))
     reports = report_service.fetch_paginated_reports(page, per_page)
     return jsonify(reports), 200
+
+
+@report_controller.route('/dash', methods=['GET'])
+def get_dash():
+    automations = automation_service.fetch_all_automations()
+    reports = report_service.fetch_all_reports()
+
+    qtd_automations = len(automations)
+
+    total_executions_obj = Counter(r['status'] for r in reports)
+    success = total_executions_obj['completed']
+    failed = total_executions_obj['failed']
+    total_executions = success + failed
+
+    response = {
+        'message': 'Relatório geral recuperado com sucesso!',
+        'report': {
+            'total_automations': qtd_automations,
+            'total_executions': total_executions,
+            'success': success,
+            'failed': failed
+        },
+    }
+
+    return jsonify(response), 200

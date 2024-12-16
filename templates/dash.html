@@ -3,176 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard de Automação de Testes</title>
+    <title>Relatório de Execuções</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f5f7;
+            color: #172b4d;
+            margin: 0;
+            padding: 0;
         }
+
+        .container {
+            width: 80%;
+            margin: 30px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
         h1 {
             text-align: center;
-            color: #4CAF50;
+            color: #0065ff;
+            font-size: 28px;
+            margin-bottom: 20px;
         }
-        .dashboard {
-            margin-top: 20px;
+
+        p {
+            font-size: 16px;
+            color: #5e6c84;
+            margin-bottom: 20px;
             text-align: center;
         }
-        .test-status {
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 8px;
-        }
-        .completed {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .pending {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        .failed {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .summary {
+
+        .chart-container {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
             gap: 30px;
         }
-        .summary div {
+
+        .chart-container canvas {
+            width: 100%;
+            max-width: 400px;
+            height: 300px;
+        }
+
+        .chart-title {
+            text-align: center;
             font-size: 18px;
-            padding: 10px;
-            border-radius: 8px;
-            background-color: #f0f0f0;
+            color: #172b4d;
+            margin-top: 15px;
         }
-        canvas {
-            max-width: 100%;
-            margin: 20px auto;
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 14px;
+            color: #5e6c84;
         }
+
+        /* Cores do Confluence */
+        .pie-success { background-color: #36b37e; }
+        .pie-fail { background-color: #ff5630; }
+        .bar-executions { background-color: #0065ff; }
+        .bar-automation { background-color: #ffab00; }
     </style>
 </head>
 <body>
-    <h1>Dashboard de Automação de Testes</h1>
 
-    <!-- Resumo de Testes -->
-    <div class="summary">
-        <div><strong>Total de Testes Executados:</strong> <span id="total-executed">0</span></div>
-        <div><strong>Status Completo:</strong> <span id="status-completed">0</span></div>
-    </div>
+    <div class="container">
+        <h1>Relatório de Execuções</h1>
+        <p><strong>Status de Execuções:</strong> Passaram: 27, Falharam: 0</p>
 
-    <!-- Gráficos -->
-    <div class="dashboard">
-        <h2>Distribuição dos Status dos Testes</h2>
-        <canvas id="statusPieChart"></canvas>
+        <div class="chart-container">
+            <!-- Gráfico de pizza para Passou vs Falhou -->
+            <div>
+                <canvas id="pieChart"></canvas>
+                <div class="chart-title">Status de Execuções</div>
+            </div>
+            <!-- Gráfico de barras para Total de Execuções -->
+            <div>
+                <canvas id="barChart"></canvas>
+                <div class="chart-title">Total de Execuções</div>
+            </div>
+            <!-- Gráfico de barras para Total de Automations -->
+            <div>
+                <canvas id="automationChart"></canvas>
+                <div class="chart-title">Total de Automations</div>
+            </div>
+        </div>
 
-        <h2>Quantidade de Execuções</h2>
-        <canvas id="executionBarChart"></canvas>
+        <div class="footer">
+            <p>Relatório gerado com sucesso! | Data de geração: 16/12/2024</p>
+        </div>
     </div>
 
     <script>
-        // Função para buscar os dados do endpoint
-        async function fetchTestReports() {
-            try {
-                const response = await fetch('/reports'); // Supondo que o endpoint seja '/reports'
-                const data = await response.json(); // Parseando os dados JSON retornados
-                return data;
-            } catch (error) {
-                console.error("Erro ao buscar os dados: ", error);
+        // Dados de entrada
+        const data = {
+            "message": "Relatório geral recuperado com sucesso!",
+            "report": {
+                "failed": 0,
+                "success": 27,
+                "total_automations": 2,
+                "total_executions": 27
             }
-        }
+        };
 
-        // Função para processar os dados dos testes
-        async function processTestData() {
-            const testResults = await fetchTestReports();
-            if (!testResults) return;
+        // Gráfico de pizza para Passou vs Falhou
+        const pieData = {
+            labels: ['Passaram', 'Falharam'],
+            datasets: [{
+                data: [data.report.success, data.report.failed],
+                backgroundColor: ['#36b37e', '#ff5630'], // Cor verde para sucesso e vermelho para falha
+                hoverBackgroundColor: ['#2d9e5e', '#e13d26']
+            }]
+        };
 
-            // Inicializando as variáveis de contagem
-            let passed = 0;
-            let failed = 0;
+        const pieConfig = {
+            type: 'pie',
+            data: pieData
+        };
 
-            // Contando os status
-            testResults.forEach(test => {
-                if (test.status === "completed") {
-                    passed++;
-                } else if (test.status === "failed") {
-                    failed++;
-                }
-            });
+        // Gráfico de barras para Total de Execuções
+        const barData = {
+            labels: ['Execuções'],
+            datasets: [{
+                label: 'Quantidade de Execuções',
+                data: [data.report.total_executions],
+                backgroundColor: '#0065ff', // Azul Confluence
+                borderColor: '#0052cc',
+                borderWidth: 1
+            }]
+        };
 
-            // Atualizando o resumo na interface
-            document.getElementById('total-executed').textContent = testResults.length;
-            document.getElementById('status-completed').textContent = passed;
-
-            // Renderizando o gráfico de Pizza (Status dos Testes)
-            renderPieChart(passed, failed);
-
-            // Renderizando o gráfico de Barras (Quantidade de Execuções)
-            renderBarChart(testResults.length);
-        }
-
-        // Função para renderizar o gráfico de Pizza (Status dos Testes)
-        function renderPieChart(passed, failed) {
-            const ctxPie = document.getElementById('statusPieChart').getContext('2d');
-            const statusPieChart = new Chart(ctxPie, {
-                type: 'pie',
-                data: {
-                    labels: ['Passaram', 'Falharam'],
-                    datasets: [{
-                        label: 'Status dos Testes',
-                        data: [passed, failed],
-                        backgroundColor: ['#4CAF50', '#F44336'], // Verde para passados e vermelho para falhados
-                        borderColor: ['#388E3C', '#C62828'],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(tooltipItem) {
-                                    return tooltipItem.label + ': ' + tooltipItem.raw + ' testes';
-                                }
-                            }
-                        }
+        const barConfig = {
+            type: 'bar',
+            data: barData,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
                     }
                 }
-            });
-        }
+            }
+        };
 
-        // Função para renderizar o gráfico de Barras (Quantidade de Execuções)
-        function renderBarChart(totalExecutions) {
-            const ctxBar = document.getElementById('executionBarChart').getContext('2d');
-            const executionBarChart = new Chart(ctxBar, {
-                type: 'bar',
-                data: {
-                    labels: ['Execuções'],
-                    datasets: [{
-                        label: 'Total de Execuções',
-                        data: [totalExecutions],
-                        backgroundColor: '#42A5F5',
-                        borderColor: '#1E88E5',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
+        // Gráfico de barras para Total de Automations
+        const automationData = {
+            labels: ['Automations'],
+            datasets: [{
+                label: 'Quantidade de Automations',
+                data: [data.report.total_automations],
+                backgroundColor: '#ffab00', // Amarelo Confluence
+                borderColor: '#ff8c00',
+                borderWidth: 1
+            }]
+        };
+
+        const automationConfig = {
+            type: 'bar',
+            data: automationData,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
                     }
                 }
-            });
-        }
+            }
+        };
 
-        // Iniciando o processo de renderização dos dados e gráficos
-        processTestData();
+        // Renderizando os gráficos
+        window.onload = function() {
+            new Chart(document.getElementById('pieChart'), pieConfig);
+            new Chart(document.getElementById('barChart'), barConfig);
+            new Chart(document.getElementById('automationChart'), automationConfig);
+        };
     </script>
 </body>
 </html>
