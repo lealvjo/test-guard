@@ -238,7 +238,7 @@
                 const response = await fetch(`/reports/paginated?page=${currentPage}&per_page=${reportsPerPage}&search=${searchTerm}`);
                 const data = await response.json();
 
-                if (data.length === 0 && currentPage > 1) {
+                if (data.reports.length === 0 && currentPage > 1) {
                     // Se não houver dados e a página for maior que 1, retorna para a última página com dados
                     currentPage--;
                     loadReports();
@@ -248,7 +248,7 @@
                 const tableBody = document.querySelector('#reportTable tbody');
                 tableBody.innerHTML = ''; // Limpa as linhas da tabela antes de adicionar os dados
 
-                data.forEach(report => {
+                data.reports.forEach(report => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${report.id_report}</td>
@@ -262,7 +262,7 @@
                 });
 
                 // Atualiza a navegação e a página
-                updatePagination();
+                updatePagination(data.total_pages);
             } catch (error) {
                 console.error('Erro ao carregar os relatórios:', error);
             }
@@ -276,13 +276,13 @@
         }
 
         // Função para atualizar os controles de navegação
-        function updatePagination() {
+        function updatePagination(totalPages) {
             const prevPage = document.getElementById('prevPage');
             const nextPage = document.getElementById('nextPage');
             const currentPageDisplay = document.getElementById('currentPageDisplay');
 
             // Atualiza a exibição da página atual
-            currentPageDisplay.textContent = `Página ${currentPage}`;
+            currentPageDisplay.textContent = `Página ${currentPage} de ${totalPages}`;
 
             // Ativa ou desativa a seta de "Anterior"
             if (currentPage > 1) {
@@ -297,11 +297,16 @@
             }
 
             // Verifica se há mais dados para carregar e ativa ou desativa a seta "Próxima"
-            nextPage.classList.remove('disabled');
-            nextPage.onclick = () => {
-                currentPage++;
-                loadReports();
-            };
+            if (currentPage < totalPages) {
+                nextPage.classList.remove('disabled');
+                nextPage.onclick = () => {
+                    currentPage++;
+                    loadReports();
+                };
+            } else {
+                nextPage.classList.add('disabled');
+                nextPage.onclick = null;
+            }
         }
 
         // Carrega os relatórios quando a página for carregada
