@@ -1,5 +1,5 @@
 import sqlite3
-
+from fuzzywuzzy import process
 
 class ReportRepository:
     def __init__(self, db_path='reports_automationsssss.db'):
@@ -24,7 +24,6 @@ class ReportRepository:
                                 )''')
             self.conn.commit()
 
-
     def insert_report_automation(self, automation_id, status, url_report, report_date, name, squad, tests):
         self.conn.execute(
             'INSERT INTO reports_automation (automation_id, status, url_report, report_date, name, squad, tests) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -45,3 +44,37 @@ class ReportRepository:
         rows = cursor.fetchall()
         reports = [dict(row) for row in rows]
         return reports
+
+    def get_reports_by_search(self, search_term):
+        # Buscar todos os relatórios do banco
+        query = "SELECT * FROM reports_automation"
+        cursor = self.conn.execute(query)
+        rows = cursor.fetchall()
+        reports = [dict(row) for row in rows]
+
+        # Realiza a busca fuzzy no nome dos relatórios
+        report_names = [report['name'] for report in reports]
+        matches = process.extract(search_term, report_names, limit=len(reports))
+
+        # Filtra os relatórios com base na similaridade fuzzy
+        matched_reports = []
+
+        # Armazena os ids para evitar duplicação
+        matched_ids = set()
+
+        for match in matches:
+            report_name = match[0]
+            score = match[1]
+
+            if score >= 70:  # Limite de similaridade (ajustável)
+                # Encontre o relatório correspondente ao nome
+                matched_report = next(report for report in reports if
+                                      report['name'] == report_name and report['id_report'] not in matched_ids)
+
+                # Adiciona o id_report no conjunto para evitar duplicação
+                matched_ids.add(matched_report['id_report'])
+
+                # Adiciona o relatório à lista de relatórios correspondentes
+                matched_reports.append(matched_report)
+
+        return matched_reports

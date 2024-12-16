@@ -13,7 +13,7 @@ report_service = ReportService()
 
 @report_controller.route('/')
 def index():
-    return render_template('dash.html')
+    return render_template('index.html')
 
 
 @report_controller.route('/report', methods=['POST'])
@@ -52,7 +52,11 @@ def get_all_reports():
 def get_paginated_reports():
     page = int(request.args.get('page', 1))
     per_page = int(request.args.get('per_page', 10))
-    reports = report_service.fetch_paginated_reports(page, per_page)
+    search_term = request.args.get('search', None)  # Obtém o termo de busca
+
+    # Busca os relatórios paginados do serviço
+    reports = report_service.fetch_paginated_reports(page, per_page, search_term)
+
     return jsonify(reports), 200
 
 

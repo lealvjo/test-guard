@@ -68,6 +68,39 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
+        /* Estilo da pesquisa */
+        .search-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .search-container input {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 250px;
+        }
+
+        .search-container button {
+            background-color: #004c97;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .search-container button:hover {
+            background-color: #003b7d;
+        }
+
+        .search-container .icon {
+            cursor: pointer;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -149,7 +182,6 @@
         <h2>Idwall Test Guard</h2>
         <a href="#" onclick="loadReports()">Relatórios de Automação</a>
         <a href="outra_pagina.html">Outras Páginas</a>
-        <!-- Adicione mais links conforme necessário -->
     </div>
 
     <!-- Conteúdo principal -->
@@ -157,6 +189,13 @@
 
         <div class="container">
             <h2>Lista de Relatórios</h2>
+
+            <!-- Campo de pesquisa com lupa -->
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Buscar por nome...">
+                <button onclick="searchReports()">🔍</button>
+            </div>
+
             <table id="reportTable">
                 <thead>
                     <tr>
@@ -165,7 +204,7 @@
                         <th>Data do Relatório</th>
                         <th>Squad</th>
                         <th>Status</th>
-                        <th>Relatorio</th>
+                        <th>Relatório</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -185,6 +224,7 @@
     <script>
         let currentPage = 1;
         const reportsPerPage = 10;
+        let searchTerm = "";  // Variável global para o termo de busca
 
         // Função para formatar a data em um formato mais legível
         function formatDate(dateStr) {
@@ -195,7 +235,7 @@
         // Função para carregar os dados da API e preencher a tabela
         async function loadReports() {
             try {
-                const response = await fetch(`/reports/paginated?page=${currentPage}&per_page=${reportsPerPage}`);
+                const response = await fetch(`/reports/paginated?page=${currentPage}&per_page=${reportsPerPage}&search=${searchTerm}`);
                 const data = await response.json();
 
                 if (data.length === 0 && currentPage > 1) {
@@ -226,6 +266,13 @@
             } catch (error) {
                 console.error('Erro ao carregar os relatórios:', error);
             }
+        }
+
+        // Função de busca que atualiza o termo de pesquisa
+        function searchReports() {
+            searchTerm = document.getElementById('searchInput').value;
+            currentPage = 1;  // Reseta para a primeira página ao buscar
+            loadReports();
         }
 
         // Função para atualizar os controles de navegação
