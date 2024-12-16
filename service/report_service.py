@@ -13,11 +13,10 @@ class ReportService:
         return reports
 
     def fetch_paginated_reports(self, page, per_page, search_term=None):
-        # Se o termo de busca foi fornecido, aplicamos a busca fuzzy
         if search_term:
-            reports = self.repository.get_reports_by_search(search_term)
+            reports, total_reports = self.repository.get_reports_by_search(search_term, page, per_page)
         else:
-            # Caso contrário, apenas fazemos a busca paginada padrão
-            reports = self.repository.get_paginated_report_automations(page, per_page)
+            reports, total_reports = self.repository.get_paginated_report_automations(page, per_page)
 
-        return reports
+        return reports, total_reports
+

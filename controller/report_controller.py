@@ -52,34 +52,18 @@ def get_all_reports():
 def get_paginated_reports():
     page = int(request.args.get('page', 1))
     per_page = int(request.args.get('per_page', 10))
-    search_term = request.args.get('search', None)  # Obtém o termo de busca
+    search_term = request.args.get('search', None)
 
-    # Busca os relatórios paginados do serviço
-    reports = report_service.fetch_paginated_reports(page, per_page, search_term)
+    # Busca os relatórios paginados e o total de relatórios
+    reports, total_reports = report_service.fetch_paginated_reports(page, per_page, search_term)
 
-    return jsonify(reports), 200
+    # Calcula o total de páginas
+    total_pages = (total_reports + per_page - 1) // per_page  # arredonda para cima
 
-
-@report_controller.route('/dash', methods=['GET'])
-def get_dash():
-    automations = automation_service.fetch_all_automations()
-    reports = report_service.fetch_all_reports()
-
-    qtd_automations = len(automations)
-
-    total_executions_obj = Counter(r['status'] for r in reports)
-    success = total_executions_obj['completed']
-    failed = total_executions_obj['failed']
-    total_executions = success + failed
-
-    response = {
-        'message': 'Relatório geral recuperado com sucesso!',
-        'report': {
-            'total_automations': qtd_automations,
-            'total_executions': total_executions,
-            'success': success,
-            'failed': failed
-        },
-    }
-
-    return jsonify(response), 200
+    # Retorna os relatórios junto com a informação da paginação
+    return jsonify({
+        'reports': reports,
+        'total_reports': total_reports,
+        'total_pages': total_pages,
+        'current_page': page
+    }), 200

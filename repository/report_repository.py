@@ -43,9 +43,15 @@ class ReportRepository:
         cursor = self.conn.execute(query, (per_page, offset))
         rows = cursor.fetchall()
         reports = [dict(row) for row in rows]
-        return reports
 
-    def get_reports_by_search(self, search_term):
+        # Contando o total de relatórios
+        count_query = "SELECT COUNT(*) FROM reports_automation"
+        cursor = self.conn.execute(count_query)
+        total_reports = cursor.fetchone()[0]
+
+        return reports, total_reports
+
+    def get_reports_by_search(self, search_term, page, per_page):
         # Buscar todos os relatórios do banco
         query = "SELECT * FROM reports_automation"
         cursor = self.conn.execute(query)
@@ -58,8 +64,6 @@ class ReportRepository:
 
         # Filtra os relatórios com base na similaridade fuzzy
         matched_reports = []
-
-        # Armazena os ids para evitar duplicação
         matched_ids = set()
 
         for match in matches:
@@ -77,4 +81,10 @@ class ReportRepository:
                 # Adiciona o relatório à lista de relatórios correspondentes
                 matched_reports.append(matched_report)
 
-        return matched_reports
+        # Paginação: calcular o total de relatórios e aplicar o limite de página
+        total_reports = len(matched_reports)  # Total de relatórios que correspondem à busca
+        offset = (page - 1) * per_page
+        paginated_reports = matched_reports[offset:offset + per_page]
+
+        return paginated_reports, total_reports
+
