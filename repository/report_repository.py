@@ -2,7 +2,7 @@ import sqlite3
 
 
 class ReportRepository:
-    def __init__(self, db_path='reports_automations.db'):
+    def __init__(self, db_path='reports_automationsssss.db'):
         self.db_path = db_path
         self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
@@ -19,15 +19,16 @@ class ReportRepository:
                                     url_report TEXT NOT NULL,
                                     report_date TEXT NOT NULL,
                                     name TEXT NOT NULL,
-                                    squad TEXT NOT NULL
+                                    squad TEXT NOT NULL,
+                                    tests INTEGER NOT NULL
                                 )''')
             self.conn.commit()
 
 
-    def insert_report_automation(self, automation_id, status, url_report, report_date, name, squad):
+    def insert_report_automation(self, automation_id, status, url_report, report_date, name, squad, tests):
         self.conn.execute(
-            'INSERT INTO reports_automation (automation_id, status, url_report, report_date, name, squad) VALUES (?, ?, ?, ?, ?, ?)',
-            (automation_id, status, url_report, report_date, name, squad))
+            'INSERT INTO reports_automation (automation_id, status, url_report, report_date, name, squad, tests) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            (automation_id, status, url_report, report_date, name, squad, tests))
         self.conn.commit()
 
     def get_all_report_automations(self):

@@ -30,7 +30,8 @@ def register_automation():
         url_report=data['url_report'],
         report_date=datetime.now().isoformat(),
         name=automation['name'],
-        squad=automation['squad']
+        squad=automation['squad'],
+        tests=data['tests']
     )
 
     response = {
