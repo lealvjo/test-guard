@@ -1,6 +1,7 @@
 import sqlite3
 from fuzzywuzzy import process
 
+
 class ReportRepository:
     def __init__(self, db_path='reports_automationsssss.db'):
         self.db_path = db_path
@@ -31,14 +32,14 @@ class ReportRepository:
         self.conn.commit()
 
     def get_all_report_automations(self):
-        cursor = self.conn.execute("SELECT * FROM reports_automation")
+        cursor = self.conn.execute("SELECT * FROM reports_automation ORDER BY id_report DESC")
         rows = cursor.fetchall()
         reports = [dict(row) for row in rows]
         return reports
 
     def get_paginated_report_automations(self, page, per_page):
         offset = (page - 1) * per_page
-        query = "SELECT * FROM reports_automation LIMIT ? OFFSET ?"
+        query = "SELECT * FROM reports_automation ORDER BY id_report DESC LIMIT ? OFFSET ?"
 
         cursor = self.conn.execute(query, (per_page, offset))
         rows = cursor.fetchall()
@@ -53,7 +54,7 @@ class ReportRepository:
 
     def get_reports_by_search(self, search_term, page, per_page):
         # Buscar todos os relatórios do banco
-        query = "SELECT * FROM reports_automation"
+        query = "SELECT * FROM reports_automation ORDER BY id_report DESC"
         cursor = self.conn.execute(query)
         rows = cursor.fetchall()
         reports = [dict(row) for row in rows]
@@ -87,4 +88,3 @@ class ReportRepository:
         paginated_reports = matched_reports[offset:offset + per_page]
 
         return paginated_reports, total_reports
-
