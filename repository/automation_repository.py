@@ -36,6 +36,38 @@ class AutomationRepository:
         automations = [dict(row) for row in rows]
         return automations
 
+    def get_paginated_automations(self, page, per_page):
+        offset = (page - 1) * per_page
+        query = "SELECT * FROM automations ORDER BY id DESC LIMIT ? OFFSET ?"
+
+        cursor = self.conn.execute(query, (per_page, offset))
+        rows = cursor.fetchall()
+        automations = [dict(row) for row in rows]
+
+        count_query = "SELECT COUNT(*) FROM automations"
+        cursor = self.conn.execute(count_query)
+        total_automations = cursor.fetchone()[0]
+
+        return automations, total_automations
+
+    def get_automations_by_search(self, search_term, page, per_page):
+        offset = (page - 1) * per_page
+        like_term = f"%{search_term}%"
+
+        query = (
+            "SELECT * FROM automations WHERE lower(name) LIKE lower(?) "
+            "ORDER BY id DESC LIMIT ? OFFSET ?"
+        )
+        cursor = self.conn.execute(query, (like_term, per_page, offset))
+        rows = cursor.fetchall()
+        automations = [dict(row) for row in rows]
+
+        count_query = "SELECT COUNT(*) FROM automations WHERE lower(name) LIKE lower(?)"
+        cursor = self.conn.execute(count_query, (like_term,))
+        total_automations = cursor.fetchone()[0]
+
+        return automations, total_automations
+
     def delete_automation(self, automation_id):
         cursor = self.conn.cursor()
         cursor.execute('DELETE FROM automations WHERE id = ?', (automation_id,))

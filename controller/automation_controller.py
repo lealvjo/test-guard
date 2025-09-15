@@ -1,9 +1,36 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, render_template
 
 from service.automation_service import AutomationService
 
 automation_controller = Blueprint('automation_controller', __name__)
 automation_service = AutomationService()
+
+
+@automation_controller.route('/automations/new', methods=['GET'])
+def new_automation_form():
+    return render_template('register_automation.html')
+
+
+@automation_controller.route('/automations/list', methods=['GET'])
+def list_automations_view():
+    return render_template('automations_list.html')
+
+
+@automation_controller.route('/automations/paginated', methods=['GET'])
+def get_paginated_automations():
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 12))
+    search_term = request.args.get('search', None)
+
+    automations, total_automations = automation_service.fetch_paginated_automations(page, per_page, search_term)
+    total_pages = (total_automations + per_page - 1) // per_page
+
+    return jsonify({
+        'automations': automations,
+        'total_automations': total_automations,
+        'total_pages': total_pages,
+        'current_page': page
+    }), 200
 
 
 @automation_controller.route('/register-automation', methods=['POST'])

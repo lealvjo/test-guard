@@ -20,3 +20,10 @@ class AutomationService:
 
     def get_automation_by_name(self, automation_name):
         return self.repository.get_automation_by_name(automation_name)
+
+    def fetch_paginated_automations(self, page, per_page, search_term=None):
+        if search_term:
+            automations, total = self.repository.get_automations_by_search(search_term, page, per_page)
+        else:
+            automations, total = self.repository.get_paginated_automations(page, per_page)
+        return automations, total

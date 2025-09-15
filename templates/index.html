@@ -68,6 +68,10 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
+        h2 {
+            color: #0065ff;
+        }
+
         /* Estilo da pesquisa */
         .search-container {
             display: flex;
@@ -180,15 +184,16 @@
     <!-- Barra lateral -->
     <div class="sidebar">
         <h2>Idwall Test Guard</h2>
-        <a href="#" onclick="loadReports()">Relatórios de Automação</a>
-        <a href="outra_pagina.html">Outras Páginas</a>
+        <a href="/automations/new">Cadastrar Automação</a>
+        <a href="/automations/list">Listar Automations</a>
+        <a href="/">Relatórios de Automação</a>
     </div>
 
     <!-- Conteúdo principal -->
     <div class="main-content">
 
-        <div class="container">
-            <h2>Lista de Relatórios</h2>
+        <div class="container" id="reportsSection">
+            <h2>Relatórios de Automação</h2>
 
             <!-- Campo de pesquisa com lupa -->
             <div class="search-container">
@@ -219,6 +224,8 @@
                 <span id="nextPage">Próxima →</span>
             </div>
         </div>
+
+        
     </div>
 
     <script>
@@ -308,6 +315,16 @@
                 nextPage.onclick = null;
             }
         }
+
+        // Alternância de telas
+        function showReports() {
+            const reports = document.getElementById('reportsSection');
+            if (reports) reports.style.display = 'block';
+            // registerSection foi removido deste template
+            loadReports();
+        }
+
+        // JS de cadastro foi movido para templates/register_automation.html
 
         // Carrega os relatórios quando a página for carregada
         window.onload = loadReports;

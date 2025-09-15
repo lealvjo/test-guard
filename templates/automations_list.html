@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automations Cadastradas</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f4f5f7; color: #172b4d; margin: 0; }
+        .sidebar { width: 250px; background-color: #004c97; color: white; height: 100vh; position: fixed; top: 0; left: 0; padding: 20px; }
+        .sidebar h2 { margin-bottom: 30px; font-size: 1.5rem; }
+        .sidebar a { color: #fff; text-decoration: none; display: block; padding: 12px 20px; margin-bottom: 10px; border-radius: 4px; }
+        .sidebar a:hover { background-color: #003b7d; }
+        .main-content { margin-left: 270px; width: calc(100% - 270px); padding: 20px; }
+        .container { width: 80%; margin: 30px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 30px; }
+        h2 { color: #0065ff; margin: 0 0 20px 0; font-weight: 700; }
+        .btn { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .btn-primary { background-color: #0065ff; color: #ffffff; }
+        .btn-secondary { background-color: #6b7280; color: #ffffff; }
+        .cards-header { display: flex; align-items: center; justify-content: space-between; margin: 0 0 12px 0; }
+        .search-box { display: flex; gap: 8px; align-items: center; }
+        .search-box input { width: 260px; padding: 10px 12px; border: 1px solid #dfe1e6; border-radius: 6px; background-color: #fafbfc; }
+        .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .card { background: #ffffff; border: 1px solid #ebecf0; border-radius: 8px; padding: 16px; box-shadow: 0 1px 2px rgba(9,30,66,0.1); display: flex; flex-direction: column; gap: 8px; }
+        .card-title { font-weight: 700; color: #172b4d; font-size: 16px; }
+        .card-meta { font-size: 12px; color: #5e6c84; }
+        .card-actions { margin-top: 8px; display: flex; gap: 8px; }
+        /* Paginação */
+        .pagination { display: flex; justify-content: center; margin-top: 20px; gap: 20px; align-items: center; }
+        .pagination span { font-size: 1.0rem; cursor: pointer; color: #172b4d; }
+        .pagination .disabled { color: #ddd; cursor: not-allowed; }
+        @media (max-width: 1100px) { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 720px) { .cards-grid { grid-template-columns: 1fr; } .search-box input { width: 100%; } }
+    </style>
+    <script>
+        let currentPage = 1;
+        const perPage = 9;
+        let currentSearch = '';
+
+        async function loadAutomationsCards() {
+            try {
+                const resp = await fetch(`/automations/paginated?page=${currentPage}&per_page=${perPage}&search=${encodeURIComponent(currentSearch)}`);
+                const data = await resp.json();
+                renderAutomationCards(data.automations, data.total_pages);
+            } catch (e) { console.error('Erro ao carregar automações', e); }
+        }
+
+        function renderAutomationCards(items, totalPages) {
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = '';
+            if (!items || !items.length) { container.innerHTML = '<p style="color:#5e6c84;">Nenhuma automação encontrada.</p>'; }
+            (items || []).forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-title">${item.name}</div>
+                    <div class="card-meta">Squad: ${item.squad || '-'} | Linguagem: ${item.language}</div>
+                    <div class="card-meta">Lançamento: ${item.launch_date || '-'}</div>
+                    <div class="card-meta" title="${item.description}">Descrição: ${item.description}</div>
+                    <div class="card-actions">
+                        <a class="btn btn-secondary" href="${item.git}" target="_blank">Repositório</a>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Atualiza paginação
+            const prev = document.getElementById('prevPage');
+            const next = document.getElementById('nextPage');
+            const display = document.getElementById('currentPageDisplay');
+
+            if (currentPage > 1) {
+                prev.classList.remove('disabled');
+                prev.onclick = () => { currentPage--; loadAutomationsCards(); };
+            } else {
+                prev.classList.add('disabled');
+                prev.onclick = null;
+            }
+
+            if (currentPage < totalPages) {
+                next.classList.remove('disabled');
+                next.onclick = () => { currentPage++; loadAutomationsCards(); };
+            } else {
+                next.classList.add('disabled');
+                next.onclick = null;
+            }
+
+            display.textContent = `Página ${currentPage} de ${totalPages}`;
+        }
+
+        function filterAutomations() {
+            const term = document.getElementById('automationSearch').value.toLowerCase().trim();
+            currentSearch = term;
+            currentPage = 1;
+            loadAutomationsCards();
+        }
+
+        window.addEventListener('DOMContentLoaded', loadAutomationsCards);
+    </script>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Idwall Test Guard</h2>
+        <a href="/automations/new">Cadastrar Automação</a>
+        <a href="/automations/list">Listar Automations</a>
+        <a href="/">Relatórios de Automação</a>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="cards-header">
+                <h2>Automations cadastradas</h2>
+                <div class="search-box">
+                    <input type="text" id="automationSearch" placeholder="Buscar por nome..." />
+                    <button class="btn btn-primary" onclick="filterAutomations()">Buscar</button>
+                </div>
+            </div>
+            <div id="cardsContainer" class="cards-grid"></div>
+            <div class="pagination" id="paginationControls">
+                <span id="prevPage" class="disabled">← Anterior</span>
+                <span id="currentPageDisplay">Página 1</span>
+                <span id="nextPage">Próxima →</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+

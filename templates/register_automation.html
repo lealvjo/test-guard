@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar Automação</title>
+    <style>
+        /* Base alinhada ao dash.html */
+        * { box-sizing: border-box; }
+        body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f4f5f7; color: #172b4d; margin: 0; }
+        .sidebar { width: 250px; background-color: #004c97; color: white; height: 100vh; position: fixed; top: 0; left: 0; padding: 20px; }
+        .sidebar h2 { margin-bottom: 30px; font-size: 1.5rem; }
+        .sidebar a { color: #fff; text-decoration: none; display: block; padding: 12px 20px; margin-bottom: 10px; border-radius: 4px; }
+        .sidebar a:hover { background-color: #003b7d; }
+        .main-content { margin-left: 270px; width: calc(100% - 270px); padding: 20px; }
+        .container { width: 80%; margin: 30px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 30px; }
+        h2 { color: #0065ff; margin: 0 0 20px 0; }
+
+        /* Títulos e textos no padrão do dash */
+        h1, h2 { text-align: left; color: #0065ff; margin: 0 0 20px 0; font-weight: 700; }
+        p { font-size: 16px; color: #5e6c84; margin-bottom: 20px; }
+
+        /* Formulário */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-grid .full { grid-column: 1 / -1; }
+        label { display: block; font-size: 14px; color: #172b4d; margin-bottom: 6px; }
+        input[type="text"], input[type="date"], textarea, select { width: 100%; padding: 10px 12px; border: 1px solid #dfe1e6; border-radius: 6px; background-color: #fafbfc; font-size: 14px; color: #172b4d; }
+        input[type="text"]:focus, input[type="date"]:focus, textarea:focus, select:focus { outline: none; border-color: #0065ff; box-shadow: 0 0 0 3px rgba(0,101,255,0.1); }
+        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
+
+        /* Botões (cores do Confluence) */
+        .btn { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .btn-primary { background-color: #0065ff; color: #ffffff; }
+        .btn-primary:hover { background-color: #0052cc; }
+        .btn-secondary { background-color: #6b7280; color: #ffffff; }
+        .btn-secondary:hover { background-color: #4b5563; }
+
+        /* Alertas */
+        .alert { margin: 12px 0 16px 0; padding: 10px 12px; border-radius: 6px; font-size: 14px; display: none; }
+        .alert-success { background-color: #e3fcef; color: #006644; border: 1px solid #b7ebc6; }
+        .alert-error { background-color: #ffebe6; color: #bf2600; border: 1px solid #ffbdad; }
+        /* Cards de automações */
+        .cards-header { display: flex; align-items: center; justify-content: space-between; margin: 24px 0 12px 0; }
+        .search-box { display: flex; gap: 8px; align-items: center; }
+        .search-box input { width: 260px; }
+        .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .card { background: #ffffff; border: 1px solid #ebecf0; border-radius: 8px; padding: 16px; box-shadow: 0 1px 2px rgba(9,30,66,0.1); display: flex; flex-direction: column; gap: 8px; }
+        .card-title { font-weight: 700; color: #172b4d; font-size: 16px; }
+        .card-meta { font-size: 12px; color: #5e6c84; }
+        .card-actions { margin-top: 8px; display: flex; gap: 8px; }
+        @media (max-width: 1100px) { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 720px) { .cards-grid { grid-template-columns: 1fr; } .search-box input { width: 100%; } }
+    </style>
+    <script>
+        function backToHome(){ window.location.href = '/'; }
+
+        function showFormAlert(message, isError) {
+            const alertBox = document.getElementById('formAlert');
+            alertBox.textContent = message;
+            alertBox.style.display = 'block';
+            alertBox.style.color = isError ? '#b91c1c' : '#166534';
+        }
+
+        function clearFormAlert() {
+            const alertBox = document.getElementById('formAlert');
+            alertBox.style.display = 'none';
+            alertBox.textContent = '';
+        }
+
+        async function submitAutomation(event) {
+            event.preventDefault();
+            clearFormAlert();
+
+            const cucumberInput = document.querySelector('input[name="cucumber"]:checked');
+            const payload = {
+                name: document.getElementById('name').value.trim(),
+                squad: document.getElementById('squad').value.trim(),
+                description: document.getElementById('description').value.trim(),
+                language: document.getElementById('language').value.trim(),
+                cucumber: cucumberInput ? cucumberInput.value : '',
+                launch_date: document.getElementById('launch_date').value,
+                git: document.getElementById('git').value.trim()
+            };
+
+            const required = ['name','description','language','cucumber','launch_date','git'];
+            for (const key of required) { if (!payload[key]) { return showFormAlert('Preencha todos os campos obrigatórios.', true); } }
+
+            try {
+                const resp = await fetch('/register-automation', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                });
+                if (!resp.ok) { const err = await resp.json().catch(()=>({})); throw new Error(err.message || 'Falha ao salvar automação'); }
+                showFormAlert('Automação cadastrada com sucesso!', false);
+                document.getElementById('automationForm').reset();
+                // Opcional: direcionar para a listagem após salvar
+                // window.location.href = '/automations/list';
+            } catch(e) { showFormAlert(e.message, true); }
+        }
+
+        // Listagem foi movida para automations_list.html
+    </script>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Idwall Test Guard</h2>
+        <a href="#">Cadastrar Automação</a>
+        <a href="/automations/list">Listar Automations</a>
+        <a href="/">Relatórios de Automação</a>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h2>Cadastrar Automação</h2>
+            <p>Preencha os campos abaixo para registrar uma nova automação.</p>
+            <div id="formAlert" class="alert"></div>
+            <form id="automationForm" onsubmit="submitAutomation(event)">
+                <div class="form-grid">
+                    <div>
+                        <label for="name">Nome</label>
+                        <input type="text" id="name" required />
+                    </div>
+                    <div>
+                        <label for="squad">Squad</label>
+                        <select id="squad" required>
+                            <option value="" disabled selected>Selecione...</option>
+                            <option value="Alpha">Alpha</option>
+                            <option value="Beta">Beta</option>
+                            <option value="Gama">Gama</option>
+                            <option value="Kratos">Kratos</option>
+                            <option value="Sigma">Sigma</option>
+                        </select>
+                    </div>
+                    <div class="full">
+                        <label for="description">Descrição</label>
+                        <textarea id="description" rows="4" required placeholder="Descreva a automação, objetivo, escopo, dependências..."></textarea>
+                    </div>
+                    <div>
+                        <label for="language">Linguagem</label>
+                        <select id="language" required>
+                            <option value="" disabled selected>Selecione...</option>
+                            <option value="Python">Python</option>
+                            <option value="Java">Java</option>
+                            <option value="JavaScript">JavaScript</option>
+                            <option value="TypeScript">TypeScript</option>
+                            <option value="C#">C#</option>
+                            <option value="Ruby">Ruby</option>
+                            <option value="Kotlin">Kotlin</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Cucumber</label>
+                        <div style="display:flex; align-items:center; gap:12px; padding-top:6px;">
+                            <label style="display:flex; align-items:center; gap:6px;">
+                                <input type="radio" name="cucumber" value="Sim" required /> Sim
+                            </label>
+                            <label style="display:flex; align-items:center; gap:6px;">
+                                <input type="radio" name="cucumber" value="Não" /> Não
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="launch_date">Data de Lançamento</label>
+                        <input type="date" id="launch_date" required />
+                    </div>
+                    <div class="full">
+                        <label for="git">Repositório Git</label>
+                        <input type="text" id="git" placeholder="https://..." required />
+                    </div>
+                </div>
+                <div style="margin-top: 16px; display: flex; gap: 8px;">
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                    <button type="button" class="btn btn-secondary" onclick="backToHome()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+
+        
+    </div>
+</body>
+</html>
+
+
