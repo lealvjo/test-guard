@@ -37,3 +37,33 @@ class AutomationService:
         else:
             automations, total = self.repository.get_paginated_automations(page, per_page)
         return automations, total
+
+    def create_automation(self, data):
+        """Cria uma nova automação"""
+        self.register_automation(
+            data['name'],
+            data['squad'],
+            data['type'],
+            data['description'],
+            data['language'],
+            data['cucumber'],
+            data['launch_date'],
+            data.get('git', ''),
+            data.get('image_base64')
+        )
+        
+        # Retornar o ID da automação criada
+        automation = self.repository.get_automation_by_name(data['name'])
+        return automation['id'] if automation else None
+
+    def get_all_automations(self):
+        """Retorna todas as automações"""
+        return self.fetch_all_automations()
+
+    def get_paginated_automations(self, page, per_page, search_term='', squad_filter='', type_filter=''):
+        """Retorna automações paginadas com filtros"""
+        return self.repository.get_paginated_automations(page, per_page, search_term, squad_filter, type_filter)
+
+    def update_automation(self, automation_id, data):
+        """Atualiza uma automação"""
+        return self.repository.update_automation(automation_id, data)

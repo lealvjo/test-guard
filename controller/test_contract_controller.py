@@ -23,6 +23,12 @@ def contracts_list():
     return render_template('contracts_list.html')
 
 
+@test_contract_controller.route('/schema-generator', methods=['GET'])
+def schema_generator():
+    """Renderiza a página do gerador de schema"""
+    return render_template('schema_generator.html')
+
+
 @test_contract_controller.route('/contracts/check-name', methods=['POST'])
 @BaseController.handle_request
 def check_contract_name():

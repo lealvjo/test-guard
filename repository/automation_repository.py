@@ -47,16 +47,39 @@ class AutomationRepository:
         automations = [dict(row) for row in rows]
         return automations
 
-    def get_paginated_automations(self, page, per_page):
+    def get_paginated_automations(self, page, per_page, search_term='', squad_filter='', type_filter=''):
         offset = (page - 1) * per_page
-        query = "SELECT * FROM automations ORDER BY id DESC LIMIT ? OFFSET ?"
-
-        cursor = self.conn.execute(query, (per_page, offset))
+        
+        # Construir query com filtros
+        where_conditions = []
+        params = []
+        
+        if search_term:
+            where_conditions.append("lower(name) LIKE lower(?)")
+            params.append(f"%{search_term}%")
+        
+        if squad_filter:
+            where_conditions.append("lower(squad) = lower(?)")
+            params.append(squad_filter)
+        
+        if type_filter:
+            where_conditions.append("lower(type) = lower(?)")
+            params.append(type_filter)
+        
+        # Query principal
+        where_clause = " WHERE " + " AND ".join(where_conditions) if where_conditions else ""
+        query = f"SELECT * FROM automations{where_clause} ORDER BY id DESC LIMIT ? OFFSET ?"
+        params.extend([per_page, offset])
+        
+        cursor = self.conn.execute(query, params)
         rows = cursor.fetchall()
         automations = [dict(row) for row in rows]
 
-        count_query = "SELECT COUNT(*) FROM automations"
-        cursor = self.conn.execute(count_query)
+        # Query de contagem
+        count_query = f"SELECT COUNT(*) FROM automations{where_clause}"
+        count_params = params[:-2]  # Remove per_page e offset
+        
+        cursor = self.conn.execute(count_query, count_params)
         total_automations = cursor.fetchone()[0]
 
         return automations, total_automations
@@ -118,3 +141,29 @@ class AutomationRepository:
         if row:
             return dict(row)
         return None
+
+    def update_automation(self, automation_id, data):
+        """
+        Atualiza uma automação existente
+        """
+        cursor = self.conn.cursor()
+        
+        # Construir query de atualização
+        set_clauses = []
+        params = []
+        
+        for key, value in data.items():
+            if key != 'id':  # Não atualizar o ID
+                set_clauses.append(f"{key} = ?")
+                params.append(value)
+        
+        if not set_clauses:
+            return False
+        
+        params.append(automation_id)
+        
+        query = f"UPDATE automations SET {', '.join(set_clauses)} WHERE id = ?"
+        cursor.execute(query, params)
+        self.conn.commit()
+        
+        return cursor.rowcount > 0
