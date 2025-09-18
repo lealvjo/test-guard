@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Coleções de Contratos</title>
+    <style>
+        /* Base alinhada ao execution_dashboard.html */
+        * { box-sizing: border-box; }
+        body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f4f5f7; color: #172b4d; margin: 0; }
+        .sidebar { 
+            width: 280px; 
+            background: linear-gradient(180deg, #004c97 0%, #003b7d 100%); 
+            color: white; 
+            height: 100vh; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            padding: 0; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .sidebar-header { 
+            padding: 25px 20px; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+            background: rgba(0,0,0,0.1);
+        }
+        .sidebar h2 { 
+            margin: 0; 
+            font-size: 1.4rem; 
+            font-weight: 700; 
+            text-align: center;
+            background: linear-gradient(45deg, #ffffff, #e3f2fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .sidebar-nav { 
+            padding: 20px 0; 
+        }
+        .sidebar a { 
+            color: #ffffff; 
+            text-decoration: none; 
+            display: flex; 
+            align-items: center; 
+            padding: 15px 25px; 
+            margin: 2px 15px; 
+            border-radius: 8px; 
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+        .sidebar a:hover { 
+            background: rgba(255,255,255,0.15); 
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .sidebar a.active { 
+            background: rgba(255,255,255,0.2); 
+            border-left: 4px solid #ffffff;
+        }
+        .sidebar-icon { 
+            margin-right: 12px; 
+            font-size: 18px; 
+            width: 20px; 
+            text-align: center;
+        }
+        .sidebar-section { 
+            margin-bottom: 25px; 
+        }
+        .sidebar-section-title { 
+            color: rgba(255,255,255,0.7); 
+            font-size: 12px; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            padding: 0 25px; 
+            margin-bottom: 10px;
+        }
+        .main-content { margin-left: 300px; width: calc(100% - 300px); padding: 20px; }
+        .container { width: 90%; margin: 30px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 30px; }
+        h1, h2 { text-align: left; color: #0065ff; margin: 0 0 20px 0; font-weight: 700; }
+        p { font-size: 16px; color: #5e6c84; margin-bottom: 20px; }
+
+        /* Controles de busca e paginação */
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .search-box { display: flex; gap: 10px; align-items: center; }
+        .search-box input { padding: 8px 12px; border: 1px solid #dfe1e6; border-radius: 6px; width: 250px; }
+        .search-box select { padding: 8px 12px; border: 1px solid #dfe1e6; border-radius: 6px; background-color: #fafbfc; font-size: 14px; color: #172b4d; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .btn-primary { background-color: #0065ff; color: #ffffff; }
+        .btn-primary:hover { background-color: #0052cc; }
+        .btn-secondary { background-color: #6b7280; color: #ffffff; }
+        .btn-secondary:hover { background-color: #4b5563; }
+
+        /* Lista de coleções */
+        .contracts-list { margin-top: 20px; }
+        .contract-item { border: 1px solid #ebecf0; border-radius: 8px; margin-bottom: 16px; background-color: #f9fafb; }
+        .contract-header { padding: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .contract-header:hover { background-color: #f1f2f4; }
+        .contract-title { font-size: 18px; font-weight: 600; color: #172b4d; margin: 0; }
+        .contract-meta { font-size: 14px; color: #5e6c84; margin: 4px 0 0 0; }
+        .expand-icon { font-size: 20px; color: #5e6c84; transition: transform 0.2s; }
+        .expand-icon.expanded { transform: rotate(90deg); }
+
+        /* Contratos expandidos */
+        .contract-details { display: none; padding: 16px; border-top: 1px solid #ebecf0; background-color: #ffffff; }
+        .contract-details.expanded { display: block; }
+        .contract-schema { margin-bottom: 16px; padding: 12px; background-color: #f8f9fa; border-radius: 6px; border-left: 4px solid #0065ff; }
+        .contract-schema-title { font-weight: 600; color: #172b4d; margin-bottom: 8px; }
+        .contract-schema-content { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; color: #5e6c84; white-space: pre-wrap; max-height: 200px; overflow-y: auto; }
+
+        /* Paginação */
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px; }
+        .pagination button { padding: 8px 12px; border: 1px solid #dfe1e6; background-color: #ffffff; border-radius: 6px; cursor: pointer; }
+        .pagination button:hover { background-color: #f1f2f4; }
+        .pagination button.active { background-color: #0065ff; color: #ffffff; border-color: #0065ff; }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Loading e estados */
+        .loading { text-align: center; padding: 40px; color: #5e6c84; }
+        
+        /* Ocultar container da modal até carregar */
+        #validationModalContainer { display: none !important; }
+        .error { background-color: #ffebe6; color: #bf2600; border: 1px solid #ffbdad; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
+        .empty-state { text-align: center; padding: 40px; color: #5e6c84; }
+
+        /* Botão de adicionar contrato */
+        .contract-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-add-contract {
+            background-color: #0065ff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-add-contract:hover {
+            background-color: #0052cc;
+        }
+        
+        .btn-add-contract:active {
+            background-color: #003d99;
+        }
+
+        /* Tooltip customizado */
+        .repository-link {
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .repository-link:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #172b4d;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            pointer-events: none;
+        }
+        
+        .repository-link:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(100%);
+            border: 5px solid transparent;
+            border-top-color: #172b4d;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .sidebar { width: 250px; }
+            .main-content { margin-left: 270px; width: calc(100% - 270px); }
+            .container { width: 95%; padding: 20px; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .search-box { justify-content: center; }
+            .search-box input { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>🛡️ Idwall Test Guard</h2>
+        </div>
+        <div class="sidebar-nav">
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Automações</div>
+                <a href="/automations/new">
+                    <span class="sidebar-icon">➕</span>
+                    Cadastrar Automação
+                </a>
+                <a href="/automations/list">
+                    <span class="sidebar-icon">📋</span>
+                    Automações Cadastradas
+                </a>
+                <a href="/">
+                    <span class="sidebar-icon">📊</span>
+                    Relatórios de Automação
+                </a>
+                <a href="/dash">
+                    <span class="sidebar-icon">📈</span>
+                    Dashboard
+                </a>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Contratos</div>
+                <a href="/contracts/new">
+                    <span class="sidebar-icon">📝</span>
+                    Cadastrar Coleção
+                </a>
+                <a href="/contracts/list" class="active">
+                    <span class="sidebar-icon">📚</span>
+                    Lista de Coleções
+                </a>
+                <a href="/contracts-dash">
+                    <span class="sidebar-icon">📊</span>
+                    Dashboard de Contratos
+                </a>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Ferramentas</div>
+                <a href="/schema-generator">
+                    <span class="sidebar-icon">⚙️</span>
+                    Gerador de Schema
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h1>Lista de Coleções de Contratos</h1>
+            <p>Visualize e gerencie todas as coleções de contratos cadastradas.</p>
+            
+            <div class="controls">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Buscar por nome da coleção..." />
+                    <select id="squadFilter" onchange="filterBySquad()">
+                        <option value="">Todas as Squads</option>
+                        <option value="Alpha">Alpha</option>
+                        <option value="Beta">Beta</option>
+                        <option value="Gama">Gama</option>
+                        <option value="Kratos">Kratos</option>
+                        <option value="Sigma">Sigma</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="searchContracts()">Buscar</button>
+                    <button class="btn btn-secondary" onclick="clearSearch()">Limpar</button>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="refreshContracts()">Atualizar</button>
+                </div>
+            </div>
+
+            <div id="errorMessage" class="error" style="display: none;"></div>
+            <div id="loadingMessage" class="loading" style="display: none;">Carregando coleções...</div>
+            <div id="emptyState" class="empty-state" style="display: none;">Nenhuma coleção encontrada.</div>
+            
+            <div id="contractsList" class="contracts-list">
+                <!-- Lista será carregada aqui -->
+            </div>
+            
+            <div id="pagination" class="pagination">
+                <!-- Paginação será carregada aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de validação -->
+    {% include 'validation_modal.html' %}
+
+    <script>
+        let currentPage = 1;
+        let currentSearch = '';
+        let currentSquad = '';
+        let totalPages = 1;
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        function showLoading() {
+            document.getElementById('loadingMessage').style.display = 'block';
+            document.getElementById('contractsList').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingMessage').style.display = 'none';
+            // Não força a exibição da lista aqui - deixa para as outras funções decidirem
+        }
+
+        function showEmptyState() {
+            document.getElementById('emptyState').style.display = 'block';
+            document.getElementById('contractsList').style.display = 'none';
+            document.getElementById('contractsList').innerHTML = ''; // Limpa o conteúdo anterior
+        }
+
+        function hideEmptyState() {
+            document.getElementById('emptyState').style.display = 'none';
+        }
+
+        function toggleContractDetails(contractId) {
+            const details = document.getElementById(`details-${contractId}`);
+            const icon = document.getElementById(`icon-${contractId}`);
+            
+            if (details.classList.contains('expanded')) {
+                details.classList.remove('expanded');
+                icon.classList.remove('expanded');
+            } else {
+                details.classList.add('expanded');
+                icon.classList.add('expanded');
+            }
+        }
+
+        function formatJson(jsonString) {
+            try {
+                const parsed = JSON.parse(jsonString);
+                return JSON.stringify(parsed, null, 2);
+            } catch (e) {
+                return jsonString;
+            }
+        }
+
+        async function loadContracts(page = 1, search = '', squad = '') {
+            showLoading();
+            hideError();
+            hideEmptyState();
+            
+            try {
+                let url = `/contracts/paginated?page=${page}&per_page=10`;
+                if (search) {
+                    url += `&search=${encodeURIComponent(search)}`;
+                }
+                if (squad) {
+                    url += `&squad=${encodeURIComponent(squad)}`;
+                }
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.contracts && data.contracts.length > 0) {
+                    displayContracts(data.contracts);
+                    updatePagination(data.current_page, data.total_pages);
+                    currentPage = data.current_page;
+                    totalPages = data.total_pages;
+                } else {
+                    showEmptyState();
+                }
+                
+            } catch (error) {
+                showError(`Erro ao carregar coleções: ${error.message}`);
+                showEmptyState();
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function displayContracts(contracts) {
+            const container = document.getElementById('contractsList');
+            container.innerHTML = '';
+            
+            // Esconde o estado vazio quando há contratos para mostrar
+            hideEmptyState();
+            
+            // Mostra a lista de contratos
+            container.style.display = 'block';
+            
+            contracts.forEach(contract => {
+                const contractDiv = document.createElement('div');
+                contractDiv.className = 'contract-item';
+                
+                const schemasCount = contract.schemas ? contract.schemas.length : 0;
+                const createdDateTime = new Date(contract.created_at).toLocaleString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit', 
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                contractDiv.innerHTML = `
+                    <div class="contract-header">
+                        <div onclick="toggleContractDetails(${contract.id})" style="flex: 1; cursor: pointer;">
+                            <h3 class="contract-title">📁 ${contract.name}</h3>
+                            <p class="contract-meta">
+                                👥 Squad: ${contract.squad} | 
+                                📋 Contratos: ${schemasCount} | 
+                                📅 Criado em: ${createdDateTime}
+                                ${contract.repository_url ? ` | 🔗 <a href="${contract.repository_url}" target="_blank" class="repository-link" style="color: #0065ff; text-decoration: none;" data-tooltip="Abrir repositório do projeto que está sendo testado por esta coleção de contratos">Repositório</a>` : ''}
+                            </p>
+                        </div>
+                        <div class="contract-actions">
+                            <button class="btn-add-contract" data-collection-id="${contract.id}" data-collection-name="${contract.name}" title="Adicionar contrato">➕</button>
+                            <span id="icon-${contract.id}" class="expand-icon" onclick="toggleContractDetails(${contract.id})">▶</span>
+                        </div>
+                    </div>
+                    <div id="details-${contract.id}" class="contract-details">
+                        ${contract.schemas ? contract.schemas.map((schema, index) => {
+                            const schemaTitle = schema.contract || schema.title || `Contrato ${index + 1}`;
+                            const schemaVersion = schema.version || 'v1';
+                            const schemaMethod = schema.method || 'N/A';
+                            const schemaEndpoint = schema.endpoint || 'N/A';
+                            
+                            // Ícones para métodos HTTP
+                            const methodIcons = {
+                                'GET': '📥',
+                                'POST': '📤',
+                                'PUT': '🔄',
+                                'DELETE': '🗑️',
+                                'PATCH': '🔧',
+                                'HEAD': '👁️',
+                                'OPTIONS': '⚙️',
+                                'N/A': '❓'
+                            };
+                            
+                            // Ícones para tipos de endpoint
+                            const getEndpointIcon = (endpoint) => {
+                                if (endpoint === 'N/A') return '❓';
+                                if (endpoint.includes('/auth') || endpoint.includes('/login')) return '🔐';
+                                if (endpoint.includes('/user')) return '👤';
+                                if (endpoint.includes('/api')) return '🔌';
+                                if (endpoint.includes('/admin')) return '⚡';
+                                if (endpoint.includes('/mobile')) return '📱';
+                                if (endpoint.includes('/web')) return '🌐';
+                                return '🔗';
+                            };
+                            
+                            return `
+                                <div class="contract-schema">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div>
+                                            <div class="contract-schema-title">${schemaTitle}</div>
+                                            <small style="color: #5e6c84; font-size: 12px;">
+                                                🏷️ Versão: ${schemaVersion} | 
+                                                ${methodIcons[schemaMethod]} Método: <span style="color: #0065ff; font-weight: 600;">${schemaMethod}</span> | 
+                                                ${getEndpointIcon(schemaEndpoint)} Endpoint: <span style="color: #006644; font-weight: 600;">${schemaEndpoint}</span>
+                                            </small>
+                                        </div>
+                                        <div style="display: flex; gap: 8px;">
+                                            <button class="btn btn-primary btn-small" onclick="openValidationModal('${contract.name}', '${schemaTitle}', '${schemaVersion}', '${schemaMethod}')">▶️ Executar</button>
+                                            <button class="btn btn-secondary btn-small" onclick="openEditContractModal('${contract.name}', '${schemaTitle}', '${schemaVersion}')">✏️ Editar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('') : '<p>📭 Nenhum contrato encontrado nesta coleção.</p>'}
+                    </div>
+                `;
+                
+                container.appendChild(contractDiv);
+            });
+
+            // Adicionar event listeners para os botões de adicionar contrato
+            container.querySelectorAll('.btn-add-contract').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Evita que o clique propague para o header
+                    const collectionId = this.getAttribute('data-collection-id');
+                    const collectionName = this.getAttribute('data-collection-name');
+                    console.log('Botão + clicado:', collectionId, collectionName); // Debug
+                    openAddContractModal(collectionId, collectionName);
+                });
+            });
+        }
+
+        function updatePagination(currentPage, totalPages) {
+            const container = document.getElementById('pagination');
+            container.innerHTML = '';
+            
+            if (totalPages <= 1) return;
+            
+            // Botão anterior
+            const prevButton = document.createElement('button');
+            prevButton.textContent = '← Anterior';
+            prevButton.disabled = currentPage === 1;
+            prevButton.onclick = () => loadContracts(currentPage - 1, currentSearch, currentSquad);
+            container.appendChild(prevButton);
+            
+            // Números das páginas
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.className = i === currentPage ? 'active' : '';
+                pageButton.onclick = () => loadContracts(i, currentSearch, currentSquad);
+                container.appendChild(pageButton);
+            }
+            
+            // Botão próximo
+            const nextButton = document.createElement('button');
+            nextButton.textContent = 'Próximo →';
+            nextButton.disabled = currentPage === totalPages;
+            nextButton.onclick = () => loadContracts(currentPage + 1, currentSearch, currentSquad);
+            container.appendChild(nextButton);
+        }
+
+        function searchContracts() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            const squadFilter = document.getElementById('squadFilter').value;
+            currentSearch = searchTerm;
+            currentSquad = squadFilter;
+            loadContracts(1, searchTerm, squadFilter);
+        }
+
+        function filterBySquad() {
+            const squadFilter = document.getElementById('squadFilter').value;
+            currentSearch = ''; // Limpa a busca anterior
+            currentSquad = squadFilter;
+            document.getElementById('searchInput').value = ''; // Limpa o campo de busca
+            loadContracts(1, '', squadFilter);
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('squadFilter').value = '';
+            currentSearch = '';
+            currentSquad = '';
+            loadContracts(1, '', '');
+        }
+
+        function refreshContracts() {
+            loadContracts(currentPage, currentSearch, currentSquad);
+        }
+
+        // Carregar coleções ao inicializar a página
+        window.onload = () => {
+            loadContracts();
+        };
+
+        // Permitir busca com Enter
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchContracts();
+            }
+        });
+
+        // Função para abrir modal de adicionar contrato (movida para escopo global)
+        function openAddContractModal(collectionId, collectionName) {
+            console.log('Abrindo modal para coleção:', collectionId, collectionName); // Debug
+            document.getElementById('modalCollectionId').value = collectionId;
+            document.getElementById('modalCollectionName').textContent = collectionName;
+            document.getElementById('contractNameInput').value = '';
+            document.getElementById('contractVersionInput').value = '';
+            document.getElementById('contractSchemaInput').value = '';
+            document.getElementById('addContractModal').style.display = 'block';
+        }
+
+    </script>
+
+    <!-- Incluir modal de adicionar contrato -->
+    {% include 'add_contract_modal.html' %}
+    
+    <!-- Incluir modal de editar contrato -->
+    {% include 'edit_contract_modal.html' %}
+</body>
+</html>

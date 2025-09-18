@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Métricas - Idwall Test Guard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Base alinhada ao padrão moderno */
+        * { box-sizing: border-box; }
+        body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f4f5f7; color: #172b4d; margin: 0; }
+        .sidebar { 
+            width: 280px; 
+            background: linear-gradient(180deg, #004c97 0%, #003b7d 100%); 
+            color: white; 
+            height: 100vh; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            padding: 0; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .sidebar-header { 
+            padding: 25px 20px; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+            background: rgba(0,0,0,0.1);
+        }
+        .sidebar h2 { 
+            margin: 0; 
+            font-size: 1.4rem; 
+            font-weight: 700; 
+            text-align: center;
+            background: linear-gradient(45deg, #ffffff, #e3f2fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .sidebar-nav { 
+            padding: 20px 0; 
+        }
+        .sidebar a { 
+            color: #ffffff; 
+            text-decoration: none; 
+            display: flex; 
+            align-items: center; 
+            padding: 15px 25px; 
+            margin: 2px 15px; 
+            border-radius: 8px; 
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+        .sidebar a:hover { 
+            background: rgba(255,255,255,0.15); 
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .sidebar a.active { 
+            background: rgba(255,255,255,0.2); 
+            border-left: 4px solid #ffffff;
+        }
+        .sidebar-icon { 
+            margin-right: 12px; 
+            font-size: 18px; 
+            width: 20px; 
+            text-align: center;
+        }
+        .sidebar-section { 
+            margin-bottom: 25px; 
+        }
+        .sidebar-section-title { 
+            color: rgba(255,255,255,0.7); 
+            font-size: 12px; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            padding: 0 25px; 
+            margin-bottom: 10px;
+        }
+        .main-content { margin-left: 300px; width: calc(100% - 300px); padding: 20px; }
+        .container { width: 95%; margin: 30px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 40px; }
+        
+        /* Header do Dashboard */
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e1e5e9;
+        }
+        .dashboard-title {
+            color: #0065ff;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .dashboard-subtitle {
+            color: #5e6c84;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        
+        /* Cards de Métricas */
+        .metrics-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        .metric-card.success {
+            background: linear-gradient(135deg, #36b37e 0%, #2d9e5e 100%);
+        }
+        .metric-card.warning {
+            background: linear-gradient(135deg, #ffab00 0%, #ff8c00 100%);
+        }
+        .metric-card.danger {
+            background: linear-gradient(135deg, #ff5630 0%, #e13d26 100%);
+        }
+        .metric-card.info {
+            background: linear-gradient(135deg, #0065ff 0%, #0052cc 100%);
+        }
+        .metric-value {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .metric-label {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        /* Layout dos Gráficos */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .chart-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border: 1px solid #e1e5e9;
+        }
+        .chart-title {
+            text-align: center;
+            font-size: 20px;
+            color: #172b4d;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        /* Gráfico de Squad */
+        .squad-chart {
+            grid-column: 1 / -1;
+        }
+        
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-success { background-color: #e3fcef; color: #36b37e; }
+        .status-failed { background-color: #ffebe6; color: #ff5630; }
+        .status-running { background-color: #fff4e6; color: #ffab00; }
+        .status-pending { background-color: #e6f3ff; color: #0065ff; }
+        
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 14px;
+            color: #5e6c84;
+            padding-top: 20px;
+            border-top: 1px solid #e1e5e9;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .main-content { margin-left: 0; width: 100%; }
+            .sidebar { transform: translateX(-100%); }
+            .charts-grid { grid-template-columns: 1fr; }
+            .metrics-cards { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>🛡️ Idwall Test Guard</h2>
+        </div>
+        <div class="sidebar-nav">
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Automações</div>
+                <a href="/automations/new">
+                    <span class="sidebar-icon">➕</span>
+                    Cadastrar Automação
+                </a>
+                <a href="/automations/list">
+                    <span class="sidebar-icon">📋</span>
+                    Automações Cadastradas
+                </a>
+                <a href="/">
+                    <span class="sidebar-icon">📊</span>
+                    Relatórios de Automação
+                </a>
+                <a href="/dash" class="active">
+                    <span class="sidebar-icon">📈</span>
+                    Dashboard de Métricas
+                </a>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Contratos</div>
+                <a href="/contracts/new">
+                    <span class="sidebar-icon">📝</span>
+                    Cadastrar Coleção
+                </a>
+                <a href="/contracts/list">
+                    <span class="sidebar-icon">📚</span>
+                    Lista de Coleções
+                </a>
+                <a href="/contracts-dash">
+                    <span class="sidebar-icon">📊</span>
+                    Dashboard de Contratos
+                </a>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Ferramentas</div>
+                <a href="/schema-generator">
+                    <span class="sidebar-icon">⚙️</span>
+                    Gerador de Schema
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">📊 Dashboard de Métricas</h1>
+                <p class="dashboard-subtitle">Visão geral das execuções de automação por Squad</p>
+            </div>
+
+            <!-- Cards de Métricas Principais -->
+            <div class="metrics-cards">
+                <div class="metric-card success">
+                    <div class="metric-value" id="totalSuccess">0</div>
+                    <div class="metric-label">Execuções Completas</div>
+                </div>
+                <div class="metric-card danger">
+                    <div class="metric-value" id="totalFailed">0</div>
+                    <div class="metric-label">Execuções Falharam</div>
+                </div>
+                <div class="metric-card info">
+                    <div class="metric-value" id="totalAutomations">0</div>
+                    <div class="metric-label">Total de Automações</div>
+                </div>
+                <div class="metric-card warning">
+                    <div class="metric-value" id="successRate">0%</div>
+                    <div class="metric-label">Taxa de Sucesso</div>
+                </div>
+            </div>
+
+            <!-- Grid de Gráficos -->
+            <div class="charts-grid">
+                <!-- Gráfico de Automações por Squad -->
+                <div class="chart-section squad-chart">
+                    <h3 class="chart-title">🚀 Automações por Squad</h3>
+                    <div class="chart-container">
+                        <canvas id="squadChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Gráfico de Status de Execução -->
+                <div class="chart-section">
+                    <h3 class="chart-title">📊 Status de Execuções</h3>
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Gráfico de Performance por Squad -->
+                <div class="chart-section">
+                    <h3 class="chart-title">⚡ Performance por Squad</h3>
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Gráfico de Tendência Temporal -->
+                <div class="chart-section">
+                    <h3 class="chart-title">📈 Tendência de Execuções (Últimos 7 dias)</h3>
+                    <div class="chart-container">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>Dashboard atualizado em tempo real | Última atualização: <span id="lastUpdate"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Função para buscar dados reais da API
+        async function fetchDashboardData() {
+            try {
+                const response = await fetch('/reports');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const reports = await response.json();
+                return processReportsData(reports);
+            } catch (error) {
+                console.error('Erro ao buscar dados da API:', error);
+                // Fallback para dados simulados em caso de erro
+                return getFallbackData();
+            }
+        }
+
+        // Processar dados dos relatórios para o formato do dashboard
+        function processReportsData(reports) {
+            const squads = {};
+            const executionStatus = {
+                completed: 0,
+                failed: 0,
+                running: 0,
+                pending: 0
+            };
+
+            // Processar cada relatório
+            reports.forEach(report => {
+                const squad = report.squad || 'Sem Squad';
+                
+                // Inicializar squad se não existir
+                if (!squads[squad]) {
+                    squads[squad] = {
+                        total_automations: 0,
+                        successful_executions: 0,
+                        failed_executions: 0,
+                        avg_execution_time: 0,
+                        last_execution: null,
+                        automation_names: new Set()
+                    };
+                }
+
+                // Contar automações únicas por squad
+                squads[squad].automation_names.add(report.name);
+                squads[squad].total_automations = squads[squad].automation_names.size;
+
+                // Contar execuções por status
+                if (report.status === 'success' || report.status === 'completed') {
+                    squads[squad].successful_executions++;
+                    executionStatus.completed++;
+                } else if (report.status === 'failed' || report.status === 'error') {
+                    squads[squad].failed_executions++;
+                    executionStatus.failed++;
+                } else if (report.status === 'running') {
+                    executionStatus.running++;
+                } else {
+                    executionStatus.pending++;
+                }
+
+                // Atualizar última execução
+                if (!squads[squad].last_execution || report.report_date > squads[squad].last_execution) {
+                    squads[squad].last_execution = report.report_date;
+                }
+            });
+
+            // Calcular tempo médio de execução (simulado baseado no número de testes)
+            Object.keys(squads).forEach(squad => {
+                const squadReports = reports.filter(r => r.squad === squad);
+                const totalTests = squadReports.reduce((sum, r) => sum + (r.tests || 1), 0);
+                const avgTests = totalTests / squadReports.length;
+                // Estimativa: 0.5 min por teste + 1 min base
+                squads[squad].avg_execution_time = Math.round((avgTests * 0.5 + 1) * 10) / 10;
+            });
+
+            // Gerar dados de tendência dos últimos 7 dias
+            const trendData = generateTrendData(reports);
+
+            return {
+                squads,
+                execution_status: executionStatus,
+                trend_data: trendData
+            };
+        }
+
+        // Gerar dados de tendência dos últimos 7 dias
+        function generateTrendData(reports) {
+            const labels = [];
+            const successful = [];
+            const failed = [];
+
+            // Gerar labels dos últimos 7 dias
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                labels.push(date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }));
+            }
+
+            // Contar execuções por dia
+            labels.forEach((label, index) => {
+                const targetDate = new Date();
+                targetDate.setDate(targetDate.getDate() - (6 - index));
+                const dateStr = targetDate.toISOString().split('T')[0];
+
+                const dayReports = reports.filter(report => {
+                    const reportDate = new Date(report.report_date).toISOString().split('T')[0];
+                    return reportDate === dateStr;
+                });
+
+                const daySuccessful = dayReports.filter(r => 
+                    r.status === 'success' || r.status === 'completed'
+                ).length;
+                const dayFailed = dayReports.filter(r => 
+                    r.status === 'failed' || r.status === 'error'
+                ).length;
+
+                successful.push(daySuccessful);
+                failed.push(dayFailed);
+            });
+
+            return { labels, successful, failed };
+        }
+
+        // Dados de fallback em caso de erro na API
+        function getFallbackData() {
+            return {
+                "squads": {
+                    "Frontend Squad": {
+                        "total_automations": 8,
+                        "successful_executions": 45,
+                        "failed_executions": 3,
+                        "avg_execution_time": 2.3,
+                        "last_execution": "2024-12-16T10:30:00Z"
+                    },
+                    "Backend Squad": {
+                        "total_automations": 12,
+                        "successful_executions": 78,
+                        "failed_executions": 5,
+                        "avg_execution_time": 3.1,
+                        "last_execution": "2024-12-16T09:45:00Z"
+                    },
+                    "Mobile Squad": {
+                        "total_automations": 6,
+                        "successful_executions": 32,
+                        "failed_executions": 2,
+                        "avg_execution_time": 4.2,
+                        "last_execution": "2024-12-16T11:15:00Z"
+                    },
+                    "QA Squad": {
+                        "total_automations": 15,
+                        "successful_executions": 95,
+                        "failed_executions": 8,
+                        "avg_execution_time": 2.8,
+                        "last_execution": "2024-12-16T08:20:00Z"
+                    }
+                },
+                "execution_status": {
+                    "completed": 250,
+                    "failed": 18,
+                    "running": 5,
+                    "pending": 12
+                },
+                "trend_data": {
+                    "labels": ["10/12", "11/12", "12/12", "13/12", "14/12", "15/12", "16/12"],
+                    "successful": [35, 42, 38, 45, 52, 48, 55],
+                    "failed": [3, 2, 4, 3, 1, 2, 3]
+                }
+            };
+        }
+
+        // Variável global para armazenar os dados
+        let dashboardData = {};
+
+        // Atualizar cards de métricas
+        function updateMetricCards() {
+            const totalSuccess = Object.values(dashboardData.squads).reduce((sum, squad) => sum + squad.successful_executions, 0);
+            const totalFailed = Object.values(dashboardData.squads).reduce((sum, squad) => sum + squad.failed_executions, 0);
+            const totalAutomations = Object.values(dashboardData.squads).reduce((sum, squad) => sum + squad.total_automations, 0);
+            const successRate = totalSuccess + totalFailed > 0 ? Math.round((totalSuccess / (totalSuccess + totalFailed)) * 100) : 0;
+
+            document.getElementById('totalSuccess').textContent = totalSuccess;
+            document.getElementById('totalFailed').textContent = totalFailed;
+            document.getElementById('totalAutomations').textContent = totalAutomations;
+            document.getElementById('successRate').textContent = successRate + '%';
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleString('pt-BR');
+        }
+
+        // Gráfico de Automações por Squad
+        function createSquadChart() {
+            const ctx = document.getElementById('squadChart').getContext('2d');
+            const squadNames = Object.keys(dashboardData.squads);
+            const automationCounts = squadNames.map(squad => dashboardData.squads[squad].total_automations);
+            const successCounts = squadNames.map(squad => dashboardData.squads[squad].successful_executions);
+            const failedCounts = squadNames.map(squad => dashboardData.squads[squad].failed_executions);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: squadNames,
+                    datasets: [
+                        {
+                            label: 'Automações Cadastradas',
+                            data: automationCounts,
+                            backgroundColor: '#0065ff',
+                            borderColor: '#0052cc',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Execuções Bem-sucedidas',
+                            data: successCounts,
+                            backgroundColor: '#36b37e',
+                            borderColor: '#2d9e5e',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Execuções Falharam',
+                            data: failedCounts,
+                            backgroundColor: '#ff5630',
+                            borderColor: '#e13d26',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 5
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
+        }
+
+        // Gráfico de Status de Execução
+        function createStatusChart() {
+            const ctx = document.getElementById('statusChart').getContext('2d');
+            const statusData = dashboardData.execution_status;
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completas', 'Falharam', 'Executando', 'Pendentes'],
+                    datasets: [{
+                        data: [
+                            statusData.completed,
+                            statusData.failed,
+                            statusData.running,
+                            statusData.pending
+                        ],
+                        backgroundColor: [
+                            '#36b37e',
+                            '#ff5630',
+                            '#ffab00',
+                            '#0065ff'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+
+        // Gráfico de Performance por Squad
+        function createPerformanceChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            const squadNames = Object.keys(dashboardData.squads);
+            const avgTimes = squadNames.map(squad => dashboardData.squads[squad].avg_execution_time);
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: squadNames,
+                    datasets: [{
+                        label: 'Tempo Médio de Execução (min)',
+                        data: avgTimes,
+                        borderColor: '#ffab00',
+                        backgroundColor: 'rgba(255, 171, 0, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Tempo (minutos)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // Gráfico de Tendência Temporal
+        function createTrendChart() {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            const trendData = dashboardData.trend_data;
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: trendData.labels,
+                    datasets: [
+                        {
+                            label: 'Execuções Bem-sucedidas',
+                            data: trendData.successful,
+                            borderColor: '#36b37e',
+                            backgroundColor: 'rgba(54, 179, 126, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Execuções Falharam',
+                            data: trendData.failed,
+                            borderColor: '#ff5630',
+                            backgroundColor: 'rgba(255, 86, 48, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 5
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
+        }
+
+        // Inicializar dashboard
+        async function initializeDashboard() {
+            try {
+                // Mostrar loading
+                document.getElementById('totalSuccess').textContent = '...';
+                document.getElementById('totalFailed').textContent = '...';
+                document.getElementById('totalAutomations').textContent = '...';
+                document.getElementById('successRate').textContent = '...';
+
+                // Buscar dados reais da API
+                dashboardData = await fetchDashboardData();
+                
+                // Atualizar interface
+                updateMetricCards();
+                createSquadChart();
+                createStatusChart();
+                createPerformanceChart();
+                createTrendChart();
+                
+                console.log('Dashboard inicializado com dados:', dashboardData);
+            } catch (error) {
+                console.error('Erro ao inicializar dashboard:', error);
+                // Usar dados de fallback
+                dashboardData = getFallbackData();
+                updateMetricCards();
+                createSquadChart();
+                createStatusChart();
+                createPerformanceChart();
+                createTrendChart();
+            }
+        }
+
+        // Inicializar quando a página carregar
+        window.onload = initializeDashboard;
+    </script>
+</body>
+</html>

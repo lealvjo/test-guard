@@ -11,6 +11,11 @@ automation_service = AutomationService()
 report_service = ReportService()
 
 
+@report_controller.route('/dash')
+def dash():
+    return render_template('execution_dashboard.html')
+
+
 @report_controller.route('/')
 def index():
     return render_template('index.html')
@@ -44,8 +49,8 @@ def register_automation():
 
 @report_controller.route('/reports', methods=['GET'])
 def get_all_reports():
-    automations = report_service.fetch_all_reports()
-    return jsonify(automations), 200
+    reports = report_service.fetch_all_reports()
+    return jsonify(reports), 200
 
 
 @report_controller.route('/reports/paginated', methods=['GET'])

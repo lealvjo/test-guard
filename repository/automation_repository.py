@@ -20,14 +20,25 @@ class AutomationRepository:
                                     language TEXT NOT NULL,
                                     cucumber TEXT NOT NULL,
                                     launch_date TEXT NOT NULL,
-                                    git TEXT NOT NULL
+                                    git TEXT NOT NULL,
+                                    image_base64 TEXT
                                 )''')
             self.conn.commit()
+        else:
+            # Verificar se as colunas image_base64 e type existem, se não existirem, adicionar
+            cursor.execute("PRAGMA table_info(automations)")
+            columns = [column[1] for column in cursor.fetchall()]
+            if 'image_base64' not in columns:
+                cursor.execute("ALTER TABLE automations ADD COLUMN image_base64 TEXT")
+                self.conn.commit()
+            if 'type' not in columns:
+                cursor.execute("ALTER TABLE automations ADD COLUMN type TEXT")
+                self.conn.commit()
 
-    def insert_automation(self, name, squad, description, language, cucumber, launch_date, git):
+    def insert_automation(self, name, squad, type, description, language, cucumber, launch_date, git, image_base64=None):
         self.conn.execute(
-            'INSERT INTO automations (name, squad, description, language, cucumber, launch_date, git) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            (name, squad, description, language, cucumber, launch_date, git))
+            'INSERT INTO automations (name, squad, type, description, language, cucumber, launch_date, git, image_base64) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            (name, squad, type, description, language, cucumber, launch_date, git, image_base64))
         self.conn.commit()
 
     def get_all_automations(self):
@@ -89,6 +100,21 @@ class AutomationRepository:
         cursor.execute('SELECT * FROM automations WHERE name = ?', (automation_name,))
         row = cursor.fetchone()
 
+        if row:
+            return dict(row)
+        return None
+
+    def check_duplicate_automation(self, name, squad, git):
+        """
+        Verifica se já existe uma automação com o mesmo nome, squad e repositório git
+        """
+        cursor = self.conn.cursor()
+        cursor.execute(
+            'SELECT * FROM automations WHERE LOWER(name) = LOWER(?) AND LOWER(squad) = LOWER(?) AND LOWER(git) = LOWER(?)',
+            (name, squad, git)
+        )
+        row = cursor.fetchone()
+        
         if row:
             return dict(row)
         return None

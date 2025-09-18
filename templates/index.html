@@ -5,177 +5,143 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relatórios de Automação</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            background-color: #f4f5f7;
-        }
-
-        /* Barra lateral */
+        /* Base alinhada ao execution_dashboard.html */
+        * { box-sizing: border-box; }
+        body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f4f5f7; color: #172b4d; margin: 0; }
         .sidebar {
-            width: 250px;
-            background-color: #004c97;
+            width: 280px; 
+            background: linear-gradient(180deg, #004c97 0%, #003b7d 100%); 
             color: white;
             height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
-            padding-top: 20px;
-            padding-left: 20px;
+            padding: 0; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 1000;
         }
-
-        .sidebar h2 {
-            margin-bottom: 30px;
-            font-size: 1.5rem;
+        .sidebar-header { 
+            padding: 25px 20px; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+            background: rgba(0,0,0,0.1);
         }
-
-        .sidebar a {
-            color: white;
-            text-decoration: none;
-            display: block;
-            padding: 12px 20px;
-            margin-bottom: 10px;
-            border-radius: 4px;
+        .sidebar h2 { 
+            margin: 0; 
+            font-size: 1.4rem; 
+            font-weight: 700; 
+            text-align: center;
+            background: linear-gradient(45deg, #ffffff, #e3f2fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-
-        .sidebar a:hover {
-            background-color: #003b7d;
+        .sidebar-nav { 
+            padding: 20px 0; 
         }
-
-        /* Conteúdo principal */
-        .main-content {
-            margin-left: 270px; /* Espaço para a barra lateral */
-            width: calc(100% - 270px);
-            padding: 20px;
+        .sidebar a { 
+            color: #ffffff; 
+            text-decoration: none; 
+            display: flex;
+            align-items: center; 
+            padding: 15px 25px; 
+            margin: 2px 15px; 
+            border-radius: 8px; 
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
         }
-
-        header {
-            background-color: #004c97;
-            color: #fff;
-            padding: 10px 20px;
+        .sidebar a:hover { 
+            background: rgba(255,255,255,0.15); 
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .sidebar a.active { 
+            background: rgba(255,255,255,0.2); 
+            border-left: 4px solid #ffffff;
+        }
+        .sidebar-icon { 
+            margin-right: 12px; 
+            font-size: 18px; 
+            width: 20px; 
             text-align: center;
         }
-
-        .container {
-            background-color: #fff;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        .sidebar-section { 
+            margin-bottom: 25px; 
         }
-
-        h2 {
-            color: #0065ff;
+        .sidebar-section-title { 
+            color: rgba(255,255,255,0.7); 
+            font-size: 12px; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            padding: 0 25px; 
+            margin-bottom: 10px;
         }
+        .main-content { margin-left: 300px; width: calc(100% - 300px); padding: 20px; }
+        .container { width: 90%; margin: 30px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 30px; }
+        h1, h2 { text-align: left; color: #0065ff; margin: 0 0 20px 0; font-weight: 700; }
+        p { font-size: 16px; color: #5e6c84; margin-bottom: 20px; }
 
-        /* Estilo da pesquisa */
-        .search-container {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 20px;
-        }
+        /* Controles de busca e paginação */
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .search-box { display: flex; gap: 10px; align-items: center; }
+        .search-box input { padding: 8px 12px; border: 1px solid #dfe1e6; border-radius: 6px; width: 250px; }
+        .search-box select { padding: 8px 12px; border: 1px solid #dfe1e6; border-radius: 6px; background-color: #fafbfc; font-size: 14px; color: #172b4d; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .btn-primary { background-color: #0065ff; color: #ffffff; }
+        .btn-primary:hover { background-color: #0052cc; }
+        .btn-secondary { background-color: #6b7280; color: #ffffff; }
+        .btn-secondary:hover { background-color: #4b5563; }
 
-        .search-container input {
-            padding: 8px;
-            font-size: 14px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            width: 250px;
-        }
+        /* Lista de relatórios */
+        .reports-list { margin-top: 20px; }
+        .report-item { border: 1px solid #ebecf0; border-radius: 8px; margin-bottom: 16px; background-color: #f9fafb; }
+        .report-header { padding: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .report-header:hover { background-color: #f1f2f4; }
+        .report-title { font-size: 18px; font-weight: 600; color: #172b4d; margin: 0; }
+        .report-meta { font-size: 14px; color: #5e6c84; margin: 4px 0 0 0; }
+        .expand-icon { font-size: 20px; color: #5e6c84; transition: transform 0.2s; }
+        .expand-icon.expanded { transform: rotate(90deg); }
 
-        .search-container button {
-            background-color: #004c97;
-            color: white;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-left: 10px;
-        }
+        /* Detalhes expandidos */
+        .report-details { display: none; padding: 16px; border-top: 1px solid #ebecf0; background-color: #ffffff; }
+        .report-details.expanded { display: block; }
+        .report-info { margin-bottom: 16px; padding: 12px; background-color: #f8f9fa; border-radius: 6px; border-left: 4px solid #0065ff; }
+        .report-info-title { font-weight: 600; color: #172b4d; margin-bottom: 8px; }
+        .report-info-content { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; color: #5e6c84; white-space: pre-wrap; }
 
-        .search-container button:hover {
-            background-color: #003b7d;
-        }
+        /* Status badges */
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .status-completed { background-color: #e3fcef; color: #006644; }
+        .status-pending { background-color: #fff4e5; color: #bf2600; }
+        .status-failed { background-color: #ffebe6; color: #bf2600; }
 
-        .search-container .icon {
-            cursor: pointer;
-        }
+        /* Botões de ação */
+        .report-actions { display: flex; align-items: center; gap: 8px; }
+        .btn-report { background-color: #0065ff; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-report:hover { background-color: #0052cc; }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
+        /* Paginação */
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px; }
+        .pagination button { padding: 8px 12px; border: 1px solid #dfe1e6; background-color: #ffffff; border-radius: 6px; cursor: pointer; }
+        .pagination button:hover { background-color: #f1f2f4; }
+        .pagination button.active { background-color: #0065ff; color: #ffffff; border-color: #0065ff; }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
+        /* Loading e estados */
+        .loading { text-align: center; padding: 40px; color: #5e6c84; }
+        .error { background-color: #ffebe6; color: #bf2600; border: 1px solid #ffbdad; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
+        .empty-state { text-align: center; padding: 40px; color: #5e6c84; }
 
-        th {
-            background-color: #004c97;
-            color: white;
-        }
-
-        tr:hover {
-            background-color: #f2f2f2;
-        }
-
-        .status-completed {
-            color: green;
-            font-weight: bold;
-        }
-
-        .status-pending {
-            color: orange;
-            font-weight: bold;
-        }
-
-        .status-failed {
-            color: red;
-            font-weight: bold;
-        }
-
-        .report-button {
-            padding: 8px 15px;
-            background-color: #004c97;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .report-button:hover {
-            background-color: #003b7d;
-        }
-
-        /* Controle de paginação */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .pagination span {
-            font-size: 1.2rem;
-            margin: 0 20px;
-            cursor: pointer;
-        }
-
-        .pagination span:hover {
-            color: #004c97;
-        }
-
-        .pagination .disabled {
-            color: #ddd;
-            cursor: not-allowed;
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .sidebar { width: 250px; }
+            .main-content { margin-left: 270px; width: calc(100% - 270px); }
+            .container { width: 95%; padding: 20px; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .search-box { justify-content: center; }
+            .search-box input { width: 100%; }
         }
     </style>
 </head>
@@ -183,45 +149,90 @@
 
     <!-- Barra lateral -->
     <div class="sidebar">
-        <h2>Idwall Test Guard</h2>
-        <a href="/automations/new">Cadastrar Automação</a>
-        <a href="/automations/list">Listar Automations</a>
-        <a href="/">Relatórios de Automação</a>
+        <div class="sidebar-header">
+            <h2>🛡️ Idwall Test Guard</h2>
+        </div>
+        <div class="sidebar-nav">
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Automações</div>
+                <a href="/automations/new">
+                    <span class="sidebar-icon">➕</span>
+                    Cadastrar Automação
+                </a>
+                <a href="/automations/list">
+                    <span class="sidebar-icon">📋</span>
+                    Automações Cadastradas
+                </a>
+                <a href="/" class="active">
+                    <span class="sidebar-icon">📊</span>
+                    Relatórios de Automação
+                </a>
+                <a href="/dash">
+                    <span class="sidebar-icon">📈</span>
+                    Dashboard
+                </a>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Contratos</div>
+                <a href="/contracts/new">
+                    <span class="sidebar-icon">📝</span>
+                    Cadastrar Coleção
+                </a>
+                <a href="/contracts/list">
+                    <span class="sidebar-icon">📚</span>
+                    Lista de Coleções
+                </a>
+                <a href="/contracts-dash">
+                    <span class="sidebar-icon">📊</span>
+                    Dashboard de Contratos
+                </a>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Ferramentas</div>
+                <a href="/schema-generator">
+                    <span class="sidebar-icon">⚙️</span>
+                    Gerador de Schema
+                </a>
+            </div>
+        </div>
     </div>
 
     <!-- Conteúdo principal -->
     <div class="main-content">
 
-        <div class="container" id="reportsSection">
-            <h2>Relatórios de Automação</h2>
-
-            <!-- Campo de pesquisa com lupa -->
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Buscar por nome...">
-                <button onclick="searchReports()">🔍</button>
+        <div class="container">
+            <h1>Relatórios de Automação</h1>
+            <p>Visualize e gerencie todos os relatórios de automação gerados.</p>
+            
+            <div class="controls">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Buscar por nome da automação..." />
+                    <select id="statusFilter" onchange="filterByStatus()">
+                        <option value="">Todos os Status</option>
+                        <option value="completed">Completed</option>
+                        <option value="pending">Pending</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="searchReports()">Buscar</button>
+                    <button class="btn btn-secondary" onclick="clearSearch()">Limpar</button>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="refreshReports()">Atualizar</button>
+                </div>
             </div>
 
-            <table id="reportTable">
-                <thead>
-                    <tr>
-                        <th>ID Report</th>
-                        <th>Nome da Automação</th>
-                        <th>Data do Relatório</th>
-                        <th>Squad</th>
-                        <th>Status</th>
-                        <th>Relatório</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- As linhas da tabela serão preenchidas dinamicamente aqui -->
-                </tbody>
-            </table>
-
-            <!-- Paginação -->
-            <div class="pagination" id="paginationControls">
-                <span id="prevPage" class="disabled">← Anterior</span>
-                <span id="currentPageDisplay">Página 1</span>
-                <span id="nextPage">Próxima →</span>
+            <div id="errorMessage" class="error" style="display: none;"></div>
+            <div id="loadingMessage" class="loading" style="display: none;">Carregando relatórios...</div>
+            <div id="emptyState" class="empty-state" style="display: none;">Nenhum relatório encontrado.</div>
+            
+            <div id="reportsList" class="reports-list">
+                <!-- Lista será carregada aqui -->
+            </div>
+            
+            <div id="pagination" class="pagination">
+                <!-- Paginação será carregada aqui -->
             </div>
         </div>
 
@@ -230,104 +241,239 @@
 
     <script>
         let currentPage = 1;
-        const reportsPerPage = 10;
-        let searchTerm = "";  // Variável global para o termo de busca
+        let currentSearch = '';
+        let currentStatus = '';
+        let totalPages = 1;
 
-        // Função para formatar a data em um formato mais legível
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        function showLoading() {
+            document.getElementById('loadingMessage').style.display = 'block';
+            document.getElementById('reportsList').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingMessage').style.display = 'none';
+        }
+
+        function showEmptyState() {
+            document.getElementById('emptyState').style.display = 'block';
+            document.getElementById('reportsList').style.display = 'none';
+            document.getElementById('reportsList').innerHTML = '';
+        }
+
+        function hideEmptyState() {
+            document.getElementById('emptyState').style.display = 'none';
+        }
+
+        function toggleReportDetails(reportId) {
+            const details = document.getElementById(`details-${reportId}`);
+            const icon = document.getElementById(`icon-${reportId}`);
+            
+            if (details.classList.contains('expanded')) {
+                details.classList.remove('expanded');
+                icon.classList.remove('expanded');
+            } else {
+                details.classList.add('expanded');
+                icon.classList.add('expanded');
+            }
+        }
+
         function formatDate(dateStr) {
             const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' };
             return new Date(dateStr).toLocaleDateString('pt-BR', options);
         }
 
-        // Função para carregar os dados da API e preencher a tabela
-        async function loadReports() {
+        function getStatusClass(status) {
+            switch(status.toLowerCase()) {
+                case 'completed': return 'status-completed';
+                case 'pending': return 'status-pending';
+                case 'failed': return 'status-failed';
+                default: return 'status-pending';
+            }
+        }
+
+        async function loadReports(page = 1, search = '', status = '') {
+            showLoading();
+            hideError();
+            hideEmptyState();
+            
             try {
-                const response = await fetch(`/reports/paginated?page=${currentPage}&per_page=${reportsPerPage}&search=${searchTerm}`);
+                let url = `/reports/paginated?page=${page}&per_page=10`;
+                if (search) {
+                    url += `&search=${encodeURIComponent(search)}`;
+                }
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
 
-                if (data.reports.length === 0 && currentPage > 1) {
-                    // Se não houver dados e a página for maior que 1, retorna para a última página com dados
-                    currentPage--;
-                    loadReports();
-                    return;
+                if (data.reports && data.reports.length > 0) {
+                    // Filtrar por status se especificado
+                    let filteredReports = data.reports;
+                    if (status) {
+                        filteredReports = data.reports.filter(report => 
+                            report.status.toLowerCase() === status.toLowerCase()
+                        );
+                    }
+                    
+                    if (filteredReports.length > 0) {
+                        displayReports(filteredReports);
+                        updatePagination(data.current_page, data.total_pages);
+                        currentPage = data.current_page;
+                        totalPages = data.total_pages;
+                    } else {
+                        showEmptyState();
+                    }
+                } else {
+                    showEmptyState();
                 }
-
-                const tableBody = document.querySelector('#reportTable tbody');
-                tableBody.innerHTML = ''; // Limpa as linhas da tabela antes de adicionar os dados
-
-                data.reports.forEach(report => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${report.id_report}</td>
-                        <td>${report.name}</td>
-                        <td>${formatDate(report.report_date)}</td>
-                        <td>${report.squad}</td>
-                        <td class="status-${report.status}">${report.status}</td>
-                        <td><a href="${report.url_report}" class="report-button" target="_blank">Abrir Relatório</a></td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-
-                // Atualiza a navegação e a página
-                updatePagination(data.total_pages);
+                
             } catch (error) {
-                console.error('Erro ao carregar os relatórios:', error);
+                showError(`Erro ao carregar relatórios: ${error.message}`);
+                showEmptyState();
+            } finally {
+                hideLoading();
             }
         }
 
-        // Função de busca que atualiza o termo de pesquisa
+        function displayReports(reports) {
+            const container = document.getElementById('reportsList');
+            container.innerHTML = '';
+            
+            hideEmptyState();
+            container.style.display = 'block';
+            
+            reports.forEach(report => {
+                const reportDiv = document.createElement('div');
+                reportDiv.className = 'report-item';
+                
+                const reportDate = formatDate(report.report_date);
+                const statusClass = getStatusClass(report.status);
+                
+                reportDiv.innerHTML = `
+                    <div class="report-header">
+                        <div onclick="toggleReportDetails(${report.id_report})" style="flex: 1; cursor: pointer;">
+                            <h3 class="report-title">📊 ${report.name}</h3>
+                            <p class="report-meta">
+                                🆔 ID: ${report.id_report} | 
+                                👥 Squad: ${report.squad} | 
+                                🎯 Tipo: ${report.type || 'Não informado'} | 
+                                📅 Data: ${reportDate}
+                            </p>
+                        </div>
+                        <div class="report-actions">
+                            <span class="status-badge ${statusClass}">${report.status}</span>
+                            <span id="icon-${report.id_report}" class="expand-icon" onclick="toggleReportDetails(${report.id_report})">▶</span>
+                        </div>
+                    </div>
+                    <div id="details-${report.id_report}" class="report-details">
+                        <div class="report-info">
+                            <div class="report-info-title">📋 Detalhes do Relatório</div>
+                            <div class="report-info-content">
+🆔 ID do Relatório: ${report.id_report}
+📊 Nome da Automação: ${report.name}
+👥 Squad: ${report.squad}
+🎯 Tipo: ${report.type || 'Não informado'}
+📈 Status: ${report.status}
+📅 Data do Relatório: ${reportDate}
+                            </div>
+                        </div>
+                        <div style="text-align: center; margin-top: 16px;">
+                            <a href="${report.url_report}" class="btn-report" target="_blank">🔗 Abrir Relatório</a>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(reportDiv);
+            });
+        }
+
+        function updatePagination(currentPage, totalPages) {
+            const container = document.getElementById('pagination');
+            container.innerHTML = '';
+            
+            if (totalPages <= 1) return;
+            
+            // Botão anterior
+            const prevButton = document.createElement('button');
+            prevButton.textContent = '← Anterior';
+            prevButton.disabled = currentPage === 1;
+            prevButton.onclick = () => loadReports(currentPage - 1, currentSearch, currentStatus);
+            container.appendChild(prevButton);
+            
+            // Números das páginas
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.className = i === currentPage ? 'active' : '';
+                pageButton.onclick = () => loadReports(i, currentSearch, currentStatus);
+                container.appendChild(pageButton);
+            }
+            
+            // Botão próximo
+            const nextButton = document.createElement('button');
+            nextButton.textContent = 'Próximo →';
+            nextButton.disabled = currentPage === totalPages;
+            nextButton.onclick = () => loadReports(currentPage + 1, currentSearch, currentStatus);
+            container.appendChild(nextButton);
+        }
+
         function searchReports() {
-            searchTerm = document.getElementById('searchInput').value;
-            currentPage = 1;  // Reseta para a primeira página ao buscar
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            const statusFilter = document.getElementById('statusFilter').value;
+            currentSearch = searchTerm;
+            currentStatus = statusFilter;
+            loadReports(1, searchTerm, statusFilter);
+        }
+
+        function filterByStatus() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            currentSearch = '';
+            currentStatus = statusFilter;
+            document.getElementById('searchInput').value = '';
+            loadReports(1, '', statusFilter);
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = '';
+            currentSearch = '';
+            currentStatus = '';
+            loadReports(1, '', '');
+        }
+
+        function refreshReports() {
+            loadReports(currentPage, currentSearch, currentStatus);
+        }
+
+        // Carregar relatórios ao inicializar a página
+        window.onload = () => {
             loadReports();
-        }
+        };
 
-        // Função para atualizar os controles de navegação
-        function updatePagination(totalPages) {
-            const prevPage = document.getElementById('prevPage');
-            const nextPage = document.getElementById('nextPage');
-            const currentPageDisplay = document.getElementById('currentPageDisplay');
-
-            // Atualiza a exibição da página atual
-            currentPageDisplay.textContent = `Página ${currentPage} de ${totalPages}`;
-
-            // Ativa ou desativa a seta de "Anterior"
-            if (currentPage > 1) {
-                prevPage.classList.remove('disabled');
-                prevPage.onclick = () => {
-                    currentPage--;
-                    loadReports();
-                };
-            } else {
-                prevPage.classList.add('disabled');
-                prevPage.onclick = null;
+        // Permitir busca com Enter
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchReports();
             }
-
-            // Verifica se há mais dados para carregar e ativa ou desativa a seta "Próxima"
-            if (currentPage < totalPages) {
-                nextPage.classList.remove('disabled');
-                nextPage.onclick = () => {
-                    currentPage++;
-                    loadReports();
-                };
-            } else {
-                nextPage.classList.add('disabled');
-                nextPage.onclick = null;
-            }
-        }
-
-        // Alternância de telas
-        function showReports() {
-            const reports = document.getElementById('reportsSection');
-            if (reports) reports.style.display = 'block';
-            // registerSection foi removido deste template
-            loadReports();
-        }
-
-        // JS de cadastro foi movido para templates/register_automation.html
-
-        // Carrega os relatórios quando a página for carregada
-        window.onload = loadReports;
+        });
     </script>
 </body>
 </html>

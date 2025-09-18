@@ -3,10 +3,13 @@ from fuzzywuzzy import process
 
 
 class ReportRepository:
-    def __init__(self, db_path='reports_automationsssss.db'):
+    def __init__(self, db_path='reports_automationsssss.db', automations_db_path='automations.db'):
         self.db_path = db_path
+        self.automations_db_path = automations_db_path
         self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
+        # Anexar o banco de automações para fazer JOIN
+        self.conn.execute(f"ATTACH DATABASE '{automations_db_path}' AS automations_db")
         self.create_table()
 
     def create_table(self):
@@ -32,14 +35,28 @@ class ReportRepository:
         self.conn.commit()
 
     def get_all_report_automations(self):
-        cursor = self.conn.execute("SELECT * FROM reports_automation ORDER BY id_report DESC")
+        # JOIN com a tabela automations para buscar o campo type
+        query = """
+        SELECT r.*, a.type 
+        FROM reports_automation r 
+        LEFT JOIN automations_db.automations a ON r.automation_id = a.id 
+        ORDER BY r.id_report DESC
+        """
+        cursor = self.conn.execute(query)
         rows = cursor.fetchall()
         reports = [dict(row) for row in rows]
         return reports
 
     def get_paginated_report_automations(self, page, per_page):
         offset = (page - 1) * per_page
-        query = "SELECT * FROM reports_automation ORDER BY id_report DESC LIMIT ? OFFSET ?"
+        # JOIN com a tabela automations para buscar o campo type
+        query = """
+        SELECT r.*, a.type 
+        FROM reports_automation r 
+        LEFT JOIN automations_db.automations a ON r.automation_id = a.id 
+        ORDER BY r.id_report DESC 
+        LIMIT ? OFFSET ?
+        """
 
         cursor = self.conn.execute(query, (per_page, offset))
         rows = cursor.fetchall()
@@ -53,8 +70,13 @@ class ReportRepository:
         return reports, total_reports
 
     def get_reports_by_search(self, search_term, page, per_page):
-        # Buscar todos os relatórios do banco
-        query = "SELECT * FROM reports_automation ORDER BY id_report DESC"
+        # Buscar todos os relatórios do banco com JOIN para incluir o tipo
+        query = """
+        SELECT r.*, a.type 
+        FROM reports_automation r 
+        LEFT JOIN automations_db.automations a ON r.automation_id = a.id 
+        ORDER BY r.id_report DESC
+        """
         cursor = self.conn.execute(query)
         rows = cursor.fetchall()
         reports = [dict(row) for row in rows]

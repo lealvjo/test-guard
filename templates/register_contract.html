@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar Coleção de Contratos</title>
+    <style>
+        /* Base alinhada ao register_automation.html */
+        * { box-sizing: border-box; }
+        body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f4f5f7; color: #172b4d; margin: 0; }
+        .sidebar { 
+            width: 280px; 
+            background: linear-gradient(180deg, #004c97 0%, #003b7d 100%); 
+            color: white; 
+            height: 100vh; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            padding: 0; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .sidebar-header { 
+            padding: 25px 20px; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+            background: rgba(0,0,0,0.1);
+        }
+        .sidebar h2 { 
+            margin: 0; 
+            font-size: 1.4rem; 
+            font-weight: 700; 
+            text-align: center;
+            background: linear-gradient(45deg, #ffffff, #e3f2fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .sidebar-nav { 
+            padding: 20px 0; 
+        }
+        .sidebar a { 
+            color: #ffffff; 
+            text-decoration: none; 
+            display: flex; 
+            align-items: center; 
+            padding: 15px 25px; 
+            margin: 2px 15px; 
+            border-radius: 8px; 
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+        .sidebar a:hover { 
+            background: rgba(255,255,255,0.15); 
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .sidebar a.active { 
+            background: rgba(255,255,255,0.2); 
+            border-left: 4px solid #ffffff;
+        }
+        .sidebar-icon { 
+            margin-right: 12px; 
+            font-size: 18px; 
+            width: 20px; 
+            text-align: center;
+        }
+        .sidebar-section { 
+            margin-bottom: 25px; 
+        }
+        .sidebar-section-title { 
+            color: rgba(255,255,255,0.7); 
+            font-size: 12px; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            padding: 0 25px; 
+            margin-bottom: 10px;
+        }
+        .main-content { margin-left: 300px; width: calc(100% - 300px); padding: 20px; }
+        .container { width: 80%; margin: 30px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 30px; }
+        h2 { color: #0065ff; margin: 0 0 20px 0; }
+
+        /* Títulos e textos no padrão do dash */
+        h1, h2 { text-align: left; color: #0065ff; margin: 0 0 20px 0; font-weight: 700; }
+        p { font-size: 16px; color: #5e6c84; margin-bottom: 20px; }
+
+        /* Formulário */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-grid .full { grid-column: 1 / -1; }
+        label { display: block; font-size: 14px; color: #172b4d; margin-bottom: 6px; }
+        input[type="text"], input[type="date"], textarea, select { width: 100%; padding: 10px 12px; border: 1px solid #dfe1e6; border-radius: 6px; background-color: #fafbfc; font-size: 14px; color: #172b4d; }
+        input[type="text"]:focus, input[type="date"]:focus, textarea:focus, select:focus { outline: none; border-color: #0065ff; box-shadow: 0 0 0 3px rgba(0,101,255,0.1); }
+        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
+
+        /* Botões (cores do Confluence) */
+        .btn { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .btn-primary { background-color: #0065ff; color: #ffffff; }
+        .btn-primary:hover { background-color: #0052cc; }
+        .btn-secondary { background-color: #6b7280; color: #ffffff; }
+        .btn-secondary:hover { background-color: #4b5563; }
+
+        /* Alertas */
+        .alert { margin: 12px 0 16px 0; padding: 10px 12px; border-radius: 6px; font-size: 14px; display: none; }
+        .alert-success { background-color: #e3fcef; color: #006644; border: 1px solid #b7ebc6; }
+        .alert-error { background-color: #ffebe6; color: #bf2600; border: 1px solid #ffbdad; }
+
+        /* Seção de schemas */
+        .schemas-section { margin-top: 20px; }
+        .schema-item { border: 1px solid #dfe1e6; border-radius: 6px; padding: 16px; margin-bottom: 16px; background-color: #fafbfc; }
+        .schema-item h4 { margin: 0 0 12px 0; color: #172b4d; }
+        .schema-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-small { padding: 6px 12px; font-size: 12px; }
+        .btn-danger { background-color: #ff5630; color: #ffffff; }
+        .btn-danger:hover { background-color: #e13d26; }
+
+        /* JSON Editor */
+        .json-editor { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 13px; }
+        .json-editor textarea { min-height: 1200px !important; height: 1200px !important; }
+
+        /* Tooltip customizado para URL do repositório */
+        .repository-url-tooltip {
+            position: relative;
+            cursor: help;
+        }
+        
+        .repository-url-tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #172b4d;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            pointer-events: none;
+            margin-bottom: 5px;
+        }
+        
+        .repository-url-tooltip:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(100%);
+            border: 5px solid transparent;
+            border-top-color: #172b4d;
+            z-index: 1000;
+            pointer-events: none;
+        }
+    </style>
+    <script>
+        function backToHome(){ window.location.href = '/'; }
+
+        function showFormAlert(message, isError) {
+            const alertBox = document.getElementById('formAlert');
+            alertBox.textContent = message;
+            alertBox.style.display = 'block';
+            alertBox.className = 'alert ' + (isError ? 'alert-error' : 'alert-success');
+        }
+
+        function clearFormAlert() {
+            const alertBox = document.getElementById('formAlert');
+            alertBox.style.display = 'none';
+            alertBox.textContent = '';
+        }
+
+        function addSchema() {
+            const schemasContainer = document.getElementById('schemasContainer');
+            const schemaIndex = schemasContainer.children.length;
+            
+            const schemaItem = document.createElement('div');
+            schemaItem.className = 'schema-item';
+            schemaItem.innerHTML = `
+                <h4>Schema ${schemaIndex + 1}</h4>
+                <div class="form-grid">
+                    <div>
+                        <label for="contract_${schemaIndex}">📄 Nome do Contrato</label>
+                        <input type="text" id="contract_${schemaIndex}" placeholder="Ex: contrato de validação de login" />
+                    </div>
+                    <div>
+                        <label for="version_${schemaIndex}">🏷️ Versão</label>
+                        <input type="text" id="version_${schemaIndex}" placeholder="Ex: v1, v2, v1.1" required />
+                        <small style="color: #5e6c84; font-size: 12px; margin-top: 4px; display: block;">
+                            Versão deste contrato específico.
+                        </small>
+                    </div>
+                    <div>
+                        <label for="method_${schemaIndex}">🌐 Método HTTP</label>
+                        <select id="method_${schemaIndex}" required>
+                            <option value="" disabled selected>Selecione...</option>
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="DELETE">DELETE</option>
+                            <option value="PATCH">PATCH</option>
+                            <option value="HEAD">HEAD</option>
+                            <option value="OPTIONS">OPTIONS</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="endpoint_${schemaIndex}">🔗 Endpoint</label>
+                        <input type="text" id="endpoint_${schemaIndex}" placeholder="Ex: /api/users/login" required />
+                        <small style="color: #5e6c84; font-size: 12px; margin-top: 4px; display: block;">
+                            Caminho da API (ex: /api/users, /auth/login)
+                        </small>
+                    </div>
+                    <div class="full">
+                        <label for="expected_${schemaIndex}">📋 JSON Schema</label>
+                        <textarea id="expected_${schemaIndex}" class="json-editor" placeholder='{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "message": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    }
+  },
+  "required": ["message"]
+}' style="height: 350px; min-height: 350px;"></textarea>
+                    </div>
+                </div>
+                <div class="schema-actions">
+                    <button type="button" class="btn btn-small btn-danger" onclick="removeSchema(this)">🗑️ Remover Schema</button>
+                    <button type="button" class="btn btn-small" onclick="formatJson(${schemaIndex})">✨ Formatar JSON</button>
+                </div>
+            `;
+            
+            schemasContainer.appendChild(schemaItem);
+        }
+
+        function removeSchema(button) {
+            button.closest('.schema-item').remove();
+            updateSchemaNumbers();
+        }
+
+        function updateSchemaNumbers() {
+            const schemas = document.querySelectorAll('.schema-item h4');
+            schemas.forEach((header, index) => {
+                header.textContent = `Schema ${index + 1}`;
+            });
+        }
+
+        function formatJson(schemaIndex) {
+            const textarea = document.getElementById(`expected_${schemaIndex}`);
+            try {
+                const json = JSON.parse(textarea.value);
+                textarea.value = JSON.stringify(json, null, 2);
+            } catch (e) {
+                showFormAlert('JSON inválido para formatação', true);
+            }
+        }
+
+        async function submitContract(event) {
+            event.preventDefault();
+            clearFormAlert();
+
+            const payload = {
+                name: document.getElementById('name').value.trim(),
+                squad: document.getElementById('squad').value.trim(),
+                repository_url: document.getElementById('repositoryUrl').value.trim(),
+                schemas: []
+            };
+
+            // Validação básica
+            if (!payload.name) {
+                return showFormAlert('Nome da coleção é obrigatório.', true);
+            }
+            if (!payload.squad) {
+                return showFormAlert('Squad é obrigatório.', true);
+            }
+
+            // Validação adicional: verifica se o nome já existe
+            try {
+                const checkResponse = await fetch('/contracts/check-name', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: payload.name })
+                });
+                
+                if (checkResponse.ok) {
+                    const checkResult = await checkResponse.json();
+                    if (!checkResult.available) {
+                        return showFormAlert(`Já existe uma coleção com o nome "${payload.name}". Escolha um nome diferente.`, true);
+                    }
+                }
+            } catch (e) {
+                // Se a verificação falhar, continua com a validação normal no backend
+                console.warn('Verificação de nome falhou, continuando com validação no backend:', e);
+            }
+
+            // Coleta os schemas
+            const schemaItems = document.querySelectorAll('.schema-item');
+            if (schemaItems.length === 0) {
+                return showFormAlert('Adicione pelo menos um schema.', true);
+            }
+
+            // Validação de duplicatas dentro da mesma coleção
+            const contractVersions = new Set();
+            for (let i = 0; i < schemaItems.length; i++) {
+                const contractName = document.getElementById(`contract_${i}`).value.trim();
+                const contractVersion = document.getElementById(`version_${i}`).value.trim();
+                
+                if (contractName && contractVersion) {
+                    const contractKey = `${contractName.toLowerCase()}_${contractVersion}`;
+                    if (contractVersions.has(contractKey)) {
+                        return showFormAlert(`Já existe um contrato com o nome "${contractName}" na versão "${contractVersion}" na mesma coleção.`, true);
+                    }
+                    contractVersions.add(contractKey);
+                }
+            }
+
+            for (let i = 0; i < schemaItems.length; i++) {
+                const contractName = document.getElementById(`contract_${i}`).value.trim();
+                const contractVersion = document.getElementById(`version_${i}`).value.trim();
+                const httpMethod = document.getElementById(`method_${i}`).value.trim();
+                const endpoint = document.getElementById(`endpoint_${i}`).value.trim();
+                const expectedJson = document.getElementById(`expected_${i}`).value.trim();
+
+                if (!contractName) {
+                    return showFormAlert(`Nome do contrato é obrigatório no Schema ${i + 1}.`, true);
+                }
+                if (!contractVersion) {
+                    return showFormAlert(`Versão é obrigatória no Schema ${i + 1}.`, true);
+                }
+                if (!httpMethod) {
+                    return showFormAlert(`Método HTTP é obrigatório no Schema ${i + 1}.`, true);
+                }
+                if (!endpoint) {
+                    return showFormAlert(`Endpoint é obrigatório no Schema ${i + 1}.`, true);
+                }
+                if (!expectedJson) {
+                    return showFormAlert(`JSON Schema é obrigatório no Schema ${i + 1}.`, true);
+                }
+
+                // Validar método HTTP
+                const allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
+                if (!allowedMethods.includes(httpMethod)) {
+                    return showFormAlert(`Método HTTP '${httpMethod}' não é válido no Schema ${i + 1}. Métodos permitidos: ${allowedMethods.join(', ')}`, true);
+                }
+
+                // Validar formato do endpoint
+                if (!endpoint.startsWith('/')) {
+                    return showFormAlert(`Endpoint deve começar com '/' no Schema ${i + 1}. Exemplo: /api/users`, true);
+                }
+
+                try {
+                    const expected = JSON.parse(expectedJson);
+                    payload.schemas.push({
+                        contract: contractName,
+                        version: contractVersion,
+                        method: httpMethod,
+                        endpoint: endpoint,
+                        expected: expected
+                    });
+                } catch (e) {
+                    return showFormAlert(`JSON inválido no Schema ${i + 1}: ${e.message}`, true);
+                }
+            }
+
+            try {
+                const resp = await fetch('/contract', {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await resp.json();
+                
+                if (!resp.ok) {
+                    throw new Error(result.error || 'Falha ao salvar coleção de contratos');
+                }
+                
+                showFormAlert('Coleção de contratos cadastrada com sucesso!', false);
+                document.getElementById('contractForm').reset();
+                
+                // Limpa os schemas
+                document.getElementById('schemasContainer').innerHTML = '';
+                
+            } catch(e) { 
+                showFormAlert(e.message, true); 
+            }
+        }
+
+        // Adiciona um schema inicial quando a página carrega
+        window.onload = function() {
+            addSchema();
+        };
+    </script>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>🛡️ Idwall Test Guard</h2>
+        </div>
+        <div class="sidebar-nav">
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Automações</div>
+                <a href="/automations/new">
+                    <span class="sidebar-icon">➕</span>
+                    Cadastrar Automação
+                </a>
+                <a href="/automations/list">
+                    <span class="sidebar-icon">📋</span>
+                    Automações Cadastradas
+                </a>
+                <a href="/">
+                    <span class="sidebar-icon">📊</span>
+                    Relatórios de Automação
+                </a>
+                <a href="/dash">
+                    <span class="sidebar-icon">📈</span>
+                    Dashboard
+                </a>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Contratos</div>
+                <a href="/contracts/new" class="active">
+                    <span class="sidebar-icon">📝</span>
+                    Cadastrar Coleção
+                </a>
+                <a href="/contracts/list">
+                    <span class="sidebar-icon">📚</span>
+                    Lista de Coleções
+                </a>
+                <a href="/contracts-dash">
+                    <span class="sidebar-icon">📊</span>
+                    Dashboard de Contratos
+                </a>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Ferramentas</div>
+                <a href="/schema-generator">
+                    <span class="sidebar-icon">⚙️</span>
+                    Gerador de Schema
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h2>Cadastrar Coleção de Contratos</h2>
+            <p>Preencha os campos abaixo para registrar uma nova coleção de contratos de teste.</p>
+            <div id="formAlert" class="alert"></div>
+            <form id="contractForm" onsubmit="submitContract(event)">
+                <div class="form-grid">
+                    <div>
+                        <label for="name">📁 Nome da Coleção</label>
+                        <input type="text" id="name" required placeholder="Ex: Coleção de contratos de login" />
+                    </div>
+                    <div>
+                        <label for="squad">👥 Squad</label>
+                        <select id="squad" required>
+                            <option value="" disabled selected>Selecione...</option>
+                            <option value="Alpha">Alpha</option>
+                            <option value="Beta">Beta</option>
+                            <option value="Gama">Gama</option>
+                            <option value="Kratos">Kratos</option>
+                            <option value="Sigma">Sigma</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="repositoryUrl" class="repository-url-tooltip" data-tooltip="Link para o repositório do projeto que esta coleção de contratos testa">🔗 URL do Repositório</label>
+                        <input type="text" id="repositoryUrl" required placeholder="Ex: https://github.com/empresa/api-backend" />
+                    </div>
+                </div>
+
+                <div class="schemas-section">
+                    <h3>Schemas de Contrato</h3>
+                    <p>Adicione os schemas JSON que serão usados para validar os contratos.</p>
+                    <div id="schemasContainer"></div>
+                    <button type="button" class="btn btn-secondary" onclick="addSchema()">➕ Adicionar Schema</button>
+                </div>
+
+                <div style="margin-top: 16px; display: flex; gap: 8px;">
+                    <button type="submit" class="btn btn-primary">💾 Salvar Coleção</button>
+                    <button type="button" class="btn btn-secondary" onclick="backToHome()">❌ Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

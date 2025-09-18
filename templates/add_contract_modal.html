@@ -1,0 +1,396 @@
+<!-- Modal para adicionar contrato -->
+<div id="addContractModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Adicionar Contrato à Coleção</h3>
+            <span class="close" onclick="closeAddContractModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="modal-info">
+                <strong>📁 Coleção:</strong> <span id="modalCollectionName"></span>
+            </div>
+            
+            <!-- Campo hidden para armazenar o ID da coleção -->
+            <input type="hidden" id="modalCollectionId" />
+            
+            <div style="margin-bottom: 20px;">
+                <label for="contractNameInput" style="display: block; margin-bottom: 8px; font-weight: 600; color: #172b4d;">📄 Nome do Contrato:</label>
+                <input type="text" id="contractNameInput" placeholder="Ex: Contrato de validação de resposta" style="width: 100%; padding: 12px; border: 1px solid #dfe1e6; border-radius: 6px; font-size: 14px;" />
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="contractVersionInput" style="display: block; margin-bottom: 8px; font-weight: 600; color: #172b4d;">🏷️ Versão do Contrato:</label>
+                <input type="text" id="contractVersionInput" placeholder="Ex: v1, v2, v1.1" required style="width: 100%; padding: 12px; border: 1px solid #dfe1e6; border-radius: 6px; font-size: 14px;" />
+                <small style="color: #5e6c84; font-size: 12px; margin-top: 4px; display: block;">
+                    Versão específica deste contrato dentro da coleção.
+                </small>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="contractMethodInput" style="display: block; margin-bottom: 8px; font-weight: 600; color: #172b4d;">🌐 Método HTTP:</label>
+                <select id="contractMethodInput" required style="width: 100%; padding: 12px; border: 1px solid #dfe1e6; border-radius: 6px; font-size: 14px;">
+                    <option value="" disabled selected>Selecione...</option>
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                    <option value="PATCH">PATCH</option>
+                    <option value="HEAD">HEAD</option>
+                    <option value="OPTIONS">OPTIONS</option>
+                </select>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="contractEndpointInput" style="display: block; margin-bottom: 8px; font-weight: 600; color: #172b4d;">🔗 Endpoint:</label>
+                <input type="text" id="contractEndpointInput" placeholder="Ex: /api/users/login" required style="width: 100%; padding: 12px; border: 1px solid #dfe1e6; border-radius: 6px; font-size: 14px;" />
+                <small style="color: #5e6c84; font-size: 12px; margin-top: 4px; display: block;">
+                    Caminho da API (ex: /api/users, /auth/login)
+                </small>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="contractSchemaInput" style="display: block; margin-bottom: 8px; font-weight: 600; color: #172b4d;">📋 JSON Schema:</label>
+                <textarea id="contractSchemaInput" placeholder='{
+  "type": "object",
+  "properties": {
+    "message": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    }
+  },
+  "required": ["message"]
+}' style="width: 100%; min-height: 200px; padding: 12px; border: 1px solid #dfe1e6; border-radius: 6px; font-family: monospace; font-size: 13px;"></textarea>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <button class="btn btn-secondary" onclick="formatContractJson()">✨ Formatar JSON</button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeAddContractModal()">❌ Cancelar</button>
+            <button class="btn btn-primary" onclick="addContractToCollection()">➕ Adicionar Contrato</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos do modal */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+    
+    .modal-content {
+        background-color: #ffffff;
+        margin: 3% auto;
+        padding: 25px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        border-bottom: 1px solid #ebecf0;
+        padding-bottom: 15px;
+    }
+    
+    .modal-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #172b4d;
+        margin: 0;
+    }
+    
+    .close {
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        color: #5e6c84;
+    }
+    
+    .close:hover {
+        color: #172b4d;
+    }
+    
+    .modal-body {
+        margin-bottom: 25px;
+    }
+    
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        border-top: 1px solid #ebecf0;
+        padding-top: 15px;
+    }
+    
+    .modal-info {
+        margin-bottom: 20px;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        border-left: 4px solid #0065ff;
+    }
+    
+    .modal-info strong {
+        color: #172b4d;
+        font-weight: 600;
+    }
+    
+    .modal-info span {
+        color: #5e6c84;
+    }
+    
+    /* Responsivo para modal */
+    @media (max-width: 768px) {
+        .modal-content {
+            width: 95%;
+            margin: 5% auto;
+            max-width: none;
+        }
+    }
+
+    /* Estilos das notificações toast */
+    .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        min-width: 300px;
+        max-width: 500px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateX(100%);
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+
+    .toast-show {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    .toast-content {
+        display: flex;
+        align-items: center;
+        padding: 16px 20px;
+        gap: 12px;
+    }
+
+    .toast-icon {
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .toast-message {
+        flex: 1;
+        font-size: 14px;
+        font-weight: 500;
+        color: #172b4d;
+        line-height: 1.4;
+    }
+
+    .toast-close {
+        background: none;
+        border: none;
+        font-size: 18px;
+        font-weight: bold;
+        color: #5e6c84;
+        cursor: pointer;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background-color 0.2s;
+    }
+
+    .toast-close:hover {
+        background-color: #f1f2f4;
+        color: #172b4d;
+    }
+
+    .toast-success {
+        border-left: 4px solid #36b37e;
+    }
+
+    .toast-error {
+        border-left: 4px solid #de350b;
+    }
+
+    .toast-info {
+        border-left: 4px solid #0065ff;
+    }
+
+    /* Responsivo para toast */
+    @media (max-width: 768px) {
+        .toast {
+            top: 10px;
+            right: 10px;
+            left: 10px;
+            min-width: auto;
+            max-width: none;
+        }
+    }
+</style>
+
+<script>
+    // Função para fechar modal
+    function closeAddContractModal() {
+        document.getElementById('addContractModal').style.display = 'none';
+        
+        // Limpar campos
+        document.getElementById('contractNameInput').value = '';
+        document.getElementById('contractVersionInput').value = '';
+        document.getElementById('contractMethodInput').value = '';
+        document.getElementById('contractEndpointInput').value = '';
+        document.getElementById('contractSchemaInput').value = '';
+    }
+
+    // Função para formatar JSON
+    function formatContractJson() {
+        const textarea = document.getElementById('contractSchemaInput');
+        try {
+            const json = JSON.parse(textarea.value);
+            textarea.value = JSON.stringify(json, null, 2);
+            showNotification('JSON formatado com sucesso!', 'success');
+        } catch (e) {
+            showNotification(`JSON inválido: ${e.message}`, 'error');
+        }
+    }
+
+    // Função para adicionar contrato
+    async function addContractToCollection() {
+        const collectionId = document.getElementById('modalCollectionId').value;
+        const contractName = document.getElementById('contractNameInput').value.trim();
+        const contractVersion = document.getElementById('contractVersionInput').value.trim();
+        const contractMethod = document.getElementById('contractMethodInput').value.trim();
+        const contractEndpoint = document.getElementById('contractEndpointInput').value.trim();
+        const schemaText = document.getElementById('contractSchemaInput').value.trim();
+
+        if (!contractName || !contractVersion || !contractMethod || !contractEndpoint || !schemaText) {
+            showNotification('Preencha todos os campos obrigatórios.', 'error');
+            return;
+        }
+
+        // Validar método HTTP
+        const allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
+        if (!allowedMethods.includes(contractMethod)) {
+            showNotification(`Método HTTP '${contractMethod}' não é válido. Métodos permitidos: ${allowedMethods.join(', ')}`, 'error');
+            return;
+        }
+
+        // Validar formato do endpoint
+        if (!contractEndpoint.startsWith('/')) {
+            showNotification(`Endpoint deve começar com '/'. Exemplo: /api/users`, 'error');
+            return;
+        }
+
+        let schema;
+        try {
+            schema = JSON.parse(schemaText);
+        } catch (e) {
+            showNotification(`JSON inválido: ${e.message}`, 'error');
+            return;
+        }
+
+        const payload = {
+            action: 'add',
+            schema: {
+                contract: contractName,
+                version: contractVersion,
+                method: contractMethod,
+                endpoint: contractEndpoint,
+                expected: schema
+            }
+        };
+
+        try {
+            const response = await fetch(`/contracts/${collectionId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showNotification('Contrato adicionado com sucesso!', 'success');
+                closeAddContractModal();
+                refreshContracts(); // Recarrega a lista
+            } else {
+                showNotification(`Erro: ${result.error || 'Erro desconhecido'}`, 'error');
+            }
+        } catch (error) {
+            showNotification(`Erro na requisição: ${error.message}`, 'error');
+        }
+    }
+
+    // Função para mostrar notificações toast
+    function showNotification(message, type = 'info') {
+        // Remove notificação anterior se existir
+        const existingNotification = document.getElementById('toast-notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+
+        // Cria a notificação
+        const notification = document.createElement('div');
+        notification.id = 'toast-notification';
+        notification.className = `toast toast-${type}`;
+        notification.innerHTML = `
+            <div class="toast-content">
+                <span class="toast-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+                <span class="toast-message">${message}</span>
+                <button class="toast-close" onclick="this.parentElement.parentElement.remove()">×</button>
+            </div>
+        `;
+
+        // Adiciona ao body
+        document.body.appendChild(notification);
+
+        // Anima a entrada
+        setTimeout(() => {
+            notification.classList.add('toast-show');
+        }, 100);
+
+        // Remove automaticamente após 4 segundos
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.classList.remove('toast-show');
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }
+        }, 4000);
+    }
+
+    // Fechar modal ao clicar fora dele
+    window.onclick = function(event) {
+        const modal = document.getElementById('addContractModal');
+        if (event.target === modal) {
+            closeAddContractModal();
+        }
+    }
+</script>

@@ -1,0 +1,348 @@
+<!-- Modal de Edição de Contrato -->
+<div id="editContractModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Editar Contrato</h3>
+            <span class="close" onclick="closeEditModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="modal-info">
+                <strong>📁 Coleção:</strong> <span id="editModalCollectionName"></span><br>
+                <strong>📄 Contrato:</strong> <span id="editModalContractName"></span><br>
+                <strong>🏷️ Versão:</strong> <span id="editModalContractVersion"></span>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="editContractName" style="display: block; margin-bottom: 8px; font-weight: 600; color: #172b4d;">📝 Nome do Contrato:</label>
+                <input type="text" id="editContractName" class="form-input" placeholder="Nome do contrato" required />
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="editContractVersion" style="display: block; margin-bottom: 8px; font-weight: 600; color: #172b4d;">🏷️ Versão:</label>
+                <input type="text" id="editContractVersion" class="form-input" placeholder="v1, v2, etc." required />
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="editContractMethod" style="display: block; margin-bottom: 8px; font-weight: 600; color: #172b4d;">🌐 Método HTTP:</label>
+                <select id="editContractMethod" class="form-input" required>
+                    <option value="" disabled selected>Selecione...</option>
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                    <option value="PATCH">PATCH</option>
+                    <option value="HEAD">HEAD</option>
+                    <option value="OPTIONS">OPTIONS</option>
+                </select>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="editContractEndpoint" style="display: block; margin-bottom: 8px; font-weight: 600; color: #172b4d;">🔗 Endpoint:</label>
+                <input type="text" id="editContractEndpoint" class="form-input" placeholder="Ex: /api/users/login" required />
+                <small style="color: #5e6c84; font-size: 12px; margin-top: 4px; display: block;">
+                    Caminho da API (ex: /api/users, /auth/login)
+                </small>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="editContractSchema" style="display: block; margin-bottom: 8px; font-weight: 600; color: #172b4d;">📋 JSON Schema:</label>
+                <textarea id="editContractSchema" class="json-input" placeholder='{
+  "type": "object",
+  "properties": {
+    "message": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    }
+  },
+  "required": ["message"]
+}' required></textarea>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <button class="btn btn-secondary" onclick="formatEditJson()">✨ Formatar JSON</button>
+            </div>
+            
+            <div id="editValidationResult" class="validation-result" style="display: none;"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeEditModal()">❌ Cancelar</button>
+            <button class="btn btn-primary" onclick="saveContractEdit()">💾 Salvar Alterações</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Modal de Edição */
+    .form-input { width: 100%; padding: 10px; border: 1px solid #dfe1e6; border-radius: 6px; font-size: 14px; margin-bottom: 10px; }
+    .form-input:focus { outline: none; border-color: #0065ff; box-shadow: 0 0 0 2px rgba(0, 101, 255, 0.1); }
+    
+    /* Input JSON para edição */
+    .json-input { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 13px; min-height: 200px; width: 100%; padding: 12px; border: 1px solid #dfe1e6; border-radius: 6px; background-color: #fafbfc; }
+    
+    /* Resultado da validação */
+    .validation-result { margin-top: 20px; padding: 15px; border-radius: 6px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
+    .validation-success { background-color: #e3fcef; color: #006644; border: 1px solid #b7ebc6; }
+    .validation-error { background-color: #ffebe6; color: #bf2600; border: 1px solid #ffbdad; }
+    
+    /* Info da modal */
+    .modal-info { margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 6px; border-left: 4px solid #0065ff; }
+    .modal-info strong { color: #172b4d; font-weight: 600; }
+    .modal-info span { color: #5e6c84; }
+</style>
+
+<script>
+    // Funções da Modal de Edição
+    let currentEditData = {};
+    let hasUnsavedChanges = false; // Flag para controlar se houve mudanças
+
+    function openEditContractModal(collectionName, contractName, contractVersion) {
+        currentEditData = {
+            collectionName: collectionName,
+            contractName: contractName,
+            contractVersion: contractVersion
+        };
+        
+        // Resetar flag de mudanças
+        hasUnsavedChanges = false;
+        
+        // Preencher os campos da modal
+        document.getElementById('editModalCollectionName').textContent = collectionName;
+        document.getElementById('editModalContractName').textContent = contractName;
+        document.getElementById('editModalContractVersion').textContent = contractVersion;
+        
+        document.getElementById('editContractName').value = contractName;
+        document.getElementById('editContractVersion').value = contractVersion;
+        
+        // Carregar o schema atual
+        loadCurrentSchema(collectionName, contractName, contractVersion);
+        
+        // Mostrar a modal
+        document.getElementById('editContractModal').style.display = 'block';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editContractModal').style.display = 'none';
+        
+        // Fazer refresh apenas se houve mudanças salvas
+        if (hasUnsavedChanges) {
+            refreshContracts();
+        }
+        
+        currentEditData = {};
+        hasUnsavedChanges = false;
+        
+        // Limpar campos
+        document.getElementById('editContractName').value = '';
+        document.getElementById('editContractVersion').value = '';
+        document.getElementById('editContractMethod').value = '';
+        document.getElementById('editContractEndpoint').value = '';
+        document.getElementById('editContractSchema').value = '';
+        document.getElementById('editValidationResult').style.display = 'none';
+    }
+
+    async function loadCurrentSchema(collectionName, contractName, contractVersion) {
+        console.log(`🔍 Carregando schema: Coleção="${collectionName}", Contrato="${contractName}", Versão="${contractVersion}"`);
+        
+        try {
+            // Buscar contratos paginados com filtro por nome
+            const response = await fetch(`/contracts/paginated?page=1&per_page=100&search=${encodeURIComponent(collectionName)}`);
+            
+            if (!response.ok) {
+                throw new Error(`Erro ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            console.log(`📊 Dados recebidos:`, data);
+            
+            if (data.contracts && data.contracts.length > 0) {
+                // Encontrar a coleção exata pelo nome
+                let targetContract = null;
+                for (const contract of data.contracts) {
+                    console.log(`🔍 Verificando coleção: "${contract.name}"`);
+                    if (contract.name === collectionName) {
+                        targetContract = contract;
+                        break;
+                    }
+                }
+                
+                if (targetContract) {
+                    console.log(`✅ Coleção encontrada:`, targetContract);
+                    // O campo schemas já vem como array
+                    const schemas = targetContract.schemas;
+                    console.log(`📋 Schemas disponíveis:`, schemas);
+                    
+                    // Encontrar o schema específico do contrato
+                    let targetSchema = null;
+                    let foundSchema = null; // Armazenar a referência ao schema encontrado
+                    for (const schema of schemas) {
+                        console.log(`🔍 Verificando schema: contract="${schema.contract}", version="${schema.version || 'undefined'}"`);
+                        
+                        // Verificar se o contrato corresponde (com ou sem versão)
+                        if (schema.contract === contractName) {
+                            // Se não há versão no schema, usar 'v1' como padrão
+                            const schemaVersion = schema.version || 'v1';
+                            console.log(`✅ Contrato encontrado! Versão do schema: ${schemaVersion}, Versão buscada: ${contractVersion}`);
+                            
+                            if (schemaVersion === contractVersion) {
+                                targetSchema = schema.expected;
+                                foundSchema = schema; // Armazenar a referência completa do schema
+                                console.log(`✅ Schema encontrado!`);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (targetSchema) {
+                        // Preencher os campos do modal
+                        document.getElementById('editContractSchema').value = JSON.stringify(targetSchema, null, 2);
+                        
+                        // Preencher os novos campos se existirem
+                        if (foundSchema && foundSchema.method) {
+                            document.getElementById('editContractMethod').value = foundSchema.method;
+                        }
+                        if (foundSchema && foundSchema.endpoint) {
+                            document.getElementById('editContractEndpoint').value = foundSchema.endpoint;
+                        }
+                        
+                        console.log(`✅ Schema carregado com sucesso!`);
+                    } else {
+                        console.log(`❌ Schema não encontrado para este contrato.`);
+                        showEditValidationResult('🔍 Schema não encontrado para este contrato.', false);
+                    }
+                } else {
+                    console.log(`❌ Coleção não encontrada.`);
+                    showEditValidationResult('📁 Coleção não encontrada.', false);
+                }
+            } else {
+                console.log(`❌ Nenhuma coleção encontrada.`);
+                showEditValidationResult('📁 Coleção não encontrada.', false);
+            }
+        } catch (error) {
+            console.error('❌ Erro ao carregar schema:', error);
+            showEditValidationResult(`⚠️ Erro ao carregar schema: ${error.message}`, false);
+        }
+    }
+
+    function formatEditJson() {
+        const textarea = document.getElementById('editContractSchema');
+        try {
+            const json = JSON.parse(textarea.value);
+            textarea.value = JSON.stringify(json, null, 2);
+            showEditValidationResult('JSON formatado com sucesso!', true);
+        } catch (e) {
+            showEditValidationResult(`JSON inválido: ${e.message}`, false);
+        }
+    }
+
+    function showEditValidationResult(message, isSuccess) {
+        const resultDiv = document.getElementById('editValidationResult');
+        const icon = isSuccess ? '✅' : '❌';
+        resultDiv.textContent = `${icon} ${message}`;
+        resultDiv.className = `validation-result ${isSuccess ? 'validation-success' : 'validation-error'}`;
+        resultDiv.style.display = 'block';
+    }
+
+    async function saveContractEdit() {
+        const newContractName = document.getElementById('editContractName').value.trim();
+        const newContractVersion = document.getElementById('editContractVersion').value.trim();
+        const newContractMethod = document.getElementById('editContractMethod').value.trim();
+        const newContractEndpoint = document.getElementById('editContractEndpoint').value.trim();
+        const schemaText = document.getElementById('editContractSchema').value.trim();
+        
+        if (!newContractName || !newContractVersion || !newContractMethod || !newContractEndpoint || !schemaText) {
+            showEditValidationResult('Todos os campos são obrigatórios.', false);
+            return;
+        }
+
+        // Validar método HTTP
+        const allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
+        if (!allowedMethods.includes(newContractMethod)) {
+            showEditValidationResult(`Método HTTP '${newContractMethod}' não é válido. Métodos permitidos: ${allowedMethods.join(', ')}`, false);
+            return;
+        }
+
+        // Validar formato do endpoint
+        if (!newContractEndpoint.startsWith('/')) {
+            showEditValidationResult(`Endpoint deve começar com '/'. Exemplo: /api/users`, false);
+            return;
+        }
+        
+        try {
+            // Validar se o JSON é válido
+            const schema = JSON.parse(schemaText);
+            
+            // Primeiro, buscar o ID da coleção
+            const collectionResponse = await fetch(`/contracts/paginated?page=1&per_page=100&search=${encodeURIComponent(currentEditData.collectionName)}`);
+            const collectionData = await collectionResponse.json();
+            
+            if (!collectionData.contracts || collectionData.contracts.length === 0) {
+                showEditValidationResult('Coleção não encontrada.', false);
+                return;
+            }
+            
+            // Encontrar a coleção exata
+            let targetCollection = null;
+            for (const contract of collectionData.contracts) {
+                if (contract.name === currentEditData.collectionName) {
+                    targetCollection = contract;
+                    break;
+                }
+            }
+            
+            if (!targetCollection) {
+                showEditValidationResult('Coleção não encontrada.', false);
+                return;
+            }
+            
+            // Preparar dados para atualização usando o endpoint existente
+            const updateData = {
+                action: 'update',
+                contract_name: currentEditData.contractName,
+                schema: {
+                    contract: newContractName,
+                    version: newContractVersion,
+                    method: newContractMethod,
+                    endpoint: newContractEndpoint,
+                    expected: schema
+                }
+            };
+            
+            const response = await fetch(`/contracts/${targetCollection.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updateData)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                showEditValidationResult('Contrato atualizado com sucesso!', true);
+                
+                // Marcar que houve mudanças salvas
+                hasUnsavedChanges = true;
+                
+                // Não fazer refresh aqui - será feito quando fechar a modal
+            } else {
+                showEditValidationResult(`Erro ao atualizar contrato: ${result.error || 'Erro desconhecido'}`, false);
+            }
+        } catch (error) {
+            if (error instanceof SyntaxError) {
+                showEditValidationResult('JSON Schema inválido. Verifique a sintaxe.', false);
+            } else {
+                showEditValidationResult(`Erro ao salvar: ${error.message}`, false);
+            }
+        }
+    }
+
+    // Fechar modal ao clicar fora dela
+    window.onclick = function(event) {
+        const editModal = document.getElementById('editContractModal');
+        if (event.target === editModal) {
+            closeEditModal();
+        }
+    }
+</script>
