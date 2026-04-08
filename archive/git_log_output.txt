@@ -1,0 +1,50 @@
+[33mcommit 8001f851cc5da45fb902434e5aa7471ead477595[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mnewfeat[m[33m, [m[1;31morigin/newfeat[m[33m)[m
+Author: proflealvjo <profleonardo.barros@fiap.com.br>
+Date:   Wed Sep 17 21:18:20 2025 -0300
+
+    feat: add features
+
+automations.db
+contracts.db
+controller/automation_controller.py
+controller/base_controller.py
+controller/report_controller.py
+controller/test_contract_controller.py
+main.py
+pytest.ini
+reports_automationsssss.db
+repository/automation_repository.py
+repository/base_repository.py
+repository/contract_repository.py
+repository/contract_repository_backup.py
+repository/report_repository.py
+requirements-test.txt
+run_tests.py
+service/automation_service.py
+service/base_service.py
+service/contract_service.py
+static/curl_modal.html
+static/curl_modal.js
+static/history_modal.js
+static/validation_modal.html
+static/validation_modal.js
+templates/add_contract_modal.html
+templates/automations_list.html
+templates/contracts_dashboard.html
+templates/contracts_list.html
+templates/dash.html
+templates/edit_contract_modal.html
+templates/execution_dashboard.html
+templates/index.html
+templates/register_automation.html
+templates/register_contract.html
+templates/schema_generator.html
+templates/validation_modal.html
+tests/README.md
+tests/conftest.py
+tests/conftest_simple.py
+tests/integration/test_endpoints.py
+tests/unit/test_controllers.py
+tests/unit/test_repositories.py
+tests/unit/test_services.py
+

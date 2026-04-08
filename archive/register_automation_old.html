@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar Automação</title>
+    <style>
+        /* Base alinhada ao execution_dashboard.html */
+        * { box-sizing: border-box; }
+        body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f4f5f7; color: #172b4d; margin: 0; }
+        .sidebar { 
+            width: 280px; 
+            background: linear-gradient(180deg, #004c97 0%, #003b7d 100%); 
+            color: white; 
+            height: 100vh; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            padding: 0; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .sidebar-header { 
+            padding: 25px 20px; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+            background: rgba(0,0,0,0.1);
+        }
+        .sidebar h2 { 
+            margin: 0; 
+            font-size: 1.4rem; 
+            font-weight: 700; 
+            text-align: center;
+            background: linear-gradient(45deg, #ffffff, #e3f2fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .sidebar-nav { 
+            padding: 20px 0; 
+        }
+        .sidebar a { 
+            color: #ffffff; 
+            text-decoration: none; 
+            display: flex; 
+            align-items: center; 
+            padding: 15px 25px; 
+            margin: 2px 15px; 
+            border-radius: 8px; 
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+        .sidebar a:hover { 
+            background: rgba(255,255,255,0.15); 
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .sidebar a.active { 
+            background: rgba(255,255,255,0.2); 
+            border-left: 4px solid #ffffff;
+        }
+        .sidebar-icon { 
+            margin-right: 12px; 
+            font-size: 18px; 
+            width: 20px; 
+            text-align: center;
+        }
+        .sidebar-section { 
+            margin-bottom: 25px; 
+        }
+        .sidebar-section-title { 
+            color: rgba(255,255,255,0.7); 
+            font-size: 12px; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            padding: 0 25px; 
+            margin-bottom: 10px;
+        }
+        .main-content { margin-left: 300px; width: calc(100% - 300px); padding: 20px; }
+        .container { width: 80%; margin: 30px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 30px; }
+        h2 { color: #0065ff; margin: 0 0 20px 0; }
+
+        /* Títulos e textos no padrão do dash */
+        h1, h2 { text-align: left; color: #0065ff; margin: 0 0 20px 0; font-weight: 700; }
+        p { font-size: 16px; color: #5e6c84; margin-bottom: 20px; }
+
+        /* Formulário */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-grid .full { grid-column: 1 / -1; }
+        label { display: block; font-size: 14px; color: #172b4d; margin-bottom: 6px; }
+        input[type="text"], input[type="date"], textarea, select { width: 100%; padding: 10px 12px; border: 1px solid #dfe1e6; border-radius: 6px; background-color: #fafbfc; font-size: 14px; color: #172b4d; }
+        input[type="text"]:focus, input[type="date"]:focus, textarea:focus, select:focus { outline: none; border-color: #0065ff; box-shadow: 0 0 0 3px rgba(0,101,255,0.1); }
+        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
+
+        /* Botões (cores do Confluence) */
+        .btn { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .btn-primary { background-color: #0065ff; color: #ffffff; }
+        .btn-primary:hover { background-color: #0052cc; }
+        .btn-secondary { background-color: #6b7280; color: #ffffff; }
+        .btn-secondary:hover { background-color: #4b5563; }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        }
+        .toast {
+            background: #ffffff;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            min-width: 300px;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        .toast.show {
+            transform: translateX(0);
+        }
+        .toast.success {
+            border-left: 4px solid #00b894;
+        }
+        .toast.error {
+            border-left: 4px solid #e74c3c;
+        }
+        .toast-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        .toast.success .toast-icon {
+            color: #00b894;
+        }
+        .toast.error .toast-icon {
+            color: #e74c3c;
+        }
+        .toast-content {
+            flex: 1;
+        }
+        .toast-title {
+            font-weight: 600;
+            color: #172b4d;
+            margin-bottom: 4px;
+        }
+        .toast-message {
+            color: #5e6c84;
+            font-size: 14px;
+        }
+
+        /* Upload de arquivo moderno */
+        .file-upload-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .file-upload-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .file-upload-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            border: 2px dashed #dfe1e6;
+            border-radius: 8px;
+            background-color: #fafbfc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-height: 120px;
+        }
+        
+        .file-upload-label:hover {
+            border-color: #0065ff;
+            background-color: #f0f7ff;
+        }
+        
+        .file-upload-label.dragover {
+            border-color: #0065ff;
+            background-color: #e6f2ff;
+            transform: scale(1.02);
+        }
+        
+        .file-upload-icon {
+            font-size: 32px;
+            color: #5e6c84;
+            margin-bottom: 12px;
+        }
+        
+        .file-upload-text {
+            color: #5e6c84;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .file-upload-hint {
+            color: #8993a4;
+            font-size: 12px;
+        }
+        
+        .image-preview-container {
+            margin-top: 16px;
+            padding: 16px;
+            border: 1px solid #dfe1e6;
+            border-radius: 8px;
+            background-color: #fafbfc;
+            display: none;
+        }
+        
+        .image-preview-container.show {
+            display: block;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 6px;
+            border: 1px solid #dfe1e6;
+            object-fit: cover;
+            margin-bottom: 12px;
+        }
+        
+        .remove-image-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .remove-image-btn:hover {
+            background: #c0392b;
+        }
+        /* Cards de automações */
+        .cards-header { display: flex; align-items: center; justify-content: space-between; margin: 24px 0 12px 0; }
+        .search-box { display: flex; gap: 8px; align-items: center; }
+        .search-box input { width: 260px; }
+        .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .card { background: #ffffff; border: 1px solid #ebecf0; border-radius: 8px; padding: 16px; box-shadow: 0 1px 2px rgba(9,30,66,0.1); display: flex; flex-direction: column; gap: 8px; }
+        .card-title { font-weight: 700; color: #172b4d; font-size: 16px; }
+        .card-meta { font-size: 12px; color: #5e6c84; }
+        .card-actions { margin-top: 8px; display: flex; gap: 8px; }
+        @media (max-width: 1100px) { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 720px) { .cards-grid { grid-template-columns: 1fr; } .search-box input { width: 100%; } }
+    </style>
+    <script>
+        function backToHome(){ window.location.href = '/'; }
+
+        let selectedImageBase64 = null;
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            processImageFile(file);
+        }
+
+        function processImageFile(file) {
+            // Validar tipo de arquivo
+            if (!file.type.startsWith('image/')) {
+                showNotification('Erro de Validação', 'Por favor, selecione apenas arquivos de imagem.', 'error');
+                document.getElementById('image').value = '';
+                return;
+            }
+
+            // Validar tamanho (máximo 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                showNotification('Erro de Validação', 'A imagem deve ter no máximo 2MB.', 'error');
+                document.getElementById('image').value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedImageBase64 = e.target.result;
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('imagePreview').classList.add('show');
+                
+                // Atualizar o label para mostrar que foi selecionado
+                const uploadLabel = document.getElementById('uploadLabel');
+                uploadLabel.innerHTML = `
+                    <div class="file-upload-icon">✅</div>
+                    <div class="file-upload-text">Imagem selecionada!</div>
+                    <div class="file-upload-hint">Clique para trocar</div>
+                `;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImage() {
+            selectedImageBase64 = null;
+            document.getElementById('image').value = '';
+            document.getElementById('imagePreview').classList.remove('show');
+            
+            // Restaurar o label original
+            const uploadLabel = document.getElementById('uploadLabel');
+            uploadLabel.innerHTML = `
+                <div class="file-upload-icon">📁</div>
+                <div class="file-upload-text">Clique para selecionar uma imagem</div>
+                <div class="file-upload-hint">ou arraste e solte aqui</div>
+            `;
+        }
+
+        // Drag & Drop functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadLabel = document.getElementById('uploadLabel');
+            
+            uploadLabel.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadLabel.classList.add('dragover');
+            });
+            
+            uploadLabel.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadLabel.classList.remove('dragover');
+            });
+            
+            uploadLabel.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadLabel.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    processImageFile(files[0]);
+                }
+            });
+        });
+
+        function showNotification(title, message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? '✅' : '❌';
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${icon}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Auto remove após 5 segundos
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, 5000);
+        }
+    </script>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>🛡️ Idwall Test Guard</h2>
+        </div>
+        <div class="sidebar-nav">
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Automações</div>
+                <a href="/automations/new" class="active">
+                    <span class="sidebar-icon">➕</span>
+                    Cadastrar Automação
+                </a>
+                <a href="/automations/list">
+                    <span class="sidebar-icon">📋</span>
+                    Automações Cadastradas
+                </a>
+                <a href="/">
+                    <span class="sidebar-icon">📊</span>
+                    Relatórios de Automação
+                </a>
+                <a href="/dash">
+                    <span class="sidebar-icon">📈</span>
+                    Dashboard
+                </a>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Contratos</div>
+                <a href="/contracts/new">
+                    <span class="sidebar-icon">📝</span>
+                    Cadastrar Coleção
+                </a>
+                <a href="/contracts/list">
+                    <span class="sidebar-icon">📚</span>
+                    Lista de Coleções
+                </a>
+                <a href="/contracts-dash">
+                    <span class="sidebar-icon">📊</span>
+                    Dashboard de Contratos
+                </a>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Ferramentas</div>
+                <a href="/schema-generator">
+                    <span class="sidebar-icon">⚙️</span>
+                    Gerador de Schema
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h2>Cadastrar Nova Automação</h2>
+            <p>Preencha os dados da automação que será cadastrada no sistema.</p>
+
+            <form action="/register-automation" method="POST" enctype="multipart/form-data">
+                <div class="form-grid">
+                    <div>
+                        <label for="name">Nome da Automação *</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div>
+                        <label for="squad">Squad</label>
+                        <input type="text" id="squad" name="squad">
+                    </div>
+                    <div>
+                        <label for="type">Tipo</label>
+                        <select id="type" name="type">
+                            <option value="">Selecione o tipo</option>
+                            <option value="API">API</option>
+                            <option value="Web">Web</option>
+                            <option value="Mobile">Mobile</option>
+                            <option value="Desktop">Desktop</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="language">Linguagem</label>
+                        <select id="language" name="language">
+                            <option value="">Selecione a linguagem</option>
+                            <option value="Python">Python</option>
+                            <option value="JavaScript">JavaScript</option>
+                            <option value="Java">Java</option>
+                            <option value="C#">C#</option>
+                            <option value="Ruby">Ruby</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="cucumber">Cucumber</label>
+                        <select id="cucumber" name="cucumber">
+                            <option value="">Selecione</option>
+                            <option value="Sim">Sim</option>
+                            <option value="Não">Não</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="launch_date">Data de Lançamento</label>
+                        <input type="date" id="launch_date" name="launch_date">
+                    </div>
+                    <div class="full">
+                        <label for="git">Repositório Git</label>
+                        <input type="text" id="git" name="git" placeholder="https://github.com/usuario/repositorio">
+                    </div>
+                    <div class="full">
+                        <label for="description">Descrição</label>
+                        <textarea id="description" name="description" rows="3" placeholder="Descreva a automação..."></textarea>
+                    </div>
+                    <div class="full">
+                        <label>Imagem da Automação</label>
+                        <div class="file-upload-container">
+                            <input type="file" id="image" name="image" accept="image/*" class="file-upload-input" onchange="handleImageUpload(event)">
+                            <label for="image" id="uploadLabel" class="file-upload-label">
+                                <div class="file-upload-icon">📁</div>
+                                <div class="file-upload-text">Clique para selecionar uma imagem</div>
+                                <div class="file-upload-hint">ou arraste e solte aqui</div>
+                            </label>
+                        </div>
+                        <div id="imagePreview" class="image-preview-container">
+                            <img id="previewImg" class="preview-image" alt="Preview">
+                            <button type="button" class="remove-image-btn" onclick="removeImage()">🗑️ Remover Imagem</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px; display: flex; gap: 12px;">
+                    <button type="button" class="btn btn-secondary" onclick="backToHome()">❌ Cancelar</button>
+                    <button type="submit" class="btn btn-primary">✅ Cadastrar Automação</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+</body>
+</html>
+

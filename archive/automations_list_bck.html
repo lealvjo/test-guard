@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automations Cadastradas</title>
+    <style>
+        /* Base alinhada ao padrão moderno */
+        * { box-sizing: border-box; }
+        body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f4f5f7; color: #172b4d; margin: 0; }
+        .sidebar { 
+            width: 280px; 
+            background: linear-gradient(180deg, #004c97 0%, #003b7d 100%); 
+            color: white; 
+            height: 100vh; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            padding: 0; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .sidebar-header { 
+            padding: 25px 20px; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+            background: rgba(0,0,0,0.1);
+        }
+        .sidebar h2 { 
+            margin: 0; 
+            font-size: 1.4rem; 
+            font-weight: 700; 
+            text-align: center;
+            background: linear-gradient(45deg, #ffffff, #e3f2fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .sidebar-nav { 
+            padding: 20px 0; 
+        }
+        .sidebar a { 
+            color: #ffffff; 
+            text-decoration: none; 
+            display: flex; 
+            align-items: center; 
+            padding: 15px 25px; 
+            margin: 2px 15px; 
+            border-radius: 8px; 
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+        .sidebar a:hover { 
+            background: rgba(255,255,255,0.15); 
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .sidebar a.active { 
+            background: rgba(255,255,255,0.2); 
+            border-left: 4px solid #ffffff;
+        }
+        .sidebar-icon { 
+            margin-right: 12px; 
+            font-size: 18px; 
+            width: 20px; 
+            text-align: center;
+        }
+        .sidebar-section { 
+            margin-bottom: 25px; 
+        }
+        .sidebar-section-title { 
+            color: rgba(255,255,255,0.7); 
+            font-size: 12px; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            padding: 0 25px; 
+            margin-bottom: 10px;
+        }
+        .main-content { margin-left: 300px; width: calc(100% - 300px); padding: 20px; }
+        .container { width: 90%; margin: 30px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 30px; }
+        h1, h2 { text-align: left; color: #0065ff; margin: 0 0 20px 0; font-weight: 700; }
+        p { font-size: 16px; color: #5e6c84; margin-bottom: 20px; }
+
+        /* Controles de busca e paginação */
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .search-box { display: flex; gap: 10px; align-items: center; }
+        .search-box input { padding: 8px 12px; border: 1px solid #dfe1e6; border-radius: 6px; width: 250px; }
+        .search-box select { padding: 8px 12px; border: 1px solid #dfe1e6; border-radius: 6px; background-color: #fafbfc; font-size: 14px; color: #172b4d; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .btn-primary { background-color: #0065ff; color: #ffffff; }
+        .btn-primary:hover { background-color: #0052cc; }
+        .btn-secondary { background-color: #6b7280; color: #ffffff; }
+        .btn-secondary:hover { background-color: #4b5563; }
+
+        /* Grid de cards */
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+        .card { background: #ffffff; border: 1px solid #ebecf0; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(9,30,66,0.1); transition: all 0.2s ease; }
+        .card:hover { box-shadow: 0 4px 8px rgba(9,30,66,0.15); transform: translateY(-2px); }
+        .card-title { font-weight: 700; color: #172b4d; font-size: 18px; margin: 0 0 12px 0; }
+        .card-meta { font-size: 14px; color: #5e6c84; margin: 6px 0; line-height: 1.4; }
+        .card-description { font-size: 14px; color: #5e6c84; margin: 12px 0; line-height: 1.5; max-height: 60px; overflow: hidden; text-overflow: ellipsis; }
+        .card-actions { margin-top: 16px; display: flex; gap: 8px; }
+        .btn-repo { background-color: #0065ff; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; transition: background-color 0.2s; }
+        .btn-repo:hover { background-color: #0052cc; }
+
+        /* Paginação */
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px; }
+        .pagination button { padding: 8px 12px; border: 1px solid #dfe1e6; background-color: #ffffff; border-radius: 6px; cursor: pointer; }
+        .pagination button:hover { background-color: #f1f2f4; }
+        .pagination button.active { background-color: #0065ff; color: #ffffff; border-color: #0065ff; }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Loading e estados */
+        .loading { text-align: center; padding: 40px; color: #5e6c84; }
+        .error { background-color: #ffebe6; color: #bf2600; border: 1px solid #ffbdad; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
+        .empty-state { text-align: center; padding: 40px; color: #5e6c84; }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .sidebar { width: 250px; }
+            .main-content { margin-left: 270px; width: calc(100% - 270px); }
+            .container { width: 95%; padding: 20px; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .search-box { justify-content: center; }
+            .search-box input { width: 100%; }
+            .cards-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+    <script>
+        let currentPage = 1;
+        let currentSearch = '';
+        let totalPages = 1;
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        function showLoading() {
+            document.getElementById('loadingMessage').style.display = 'block';
+            document.getElementById('automationsList').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingMessage').style.display = 'none';
+        }
+
+        function showEmptyState() {
+            document.getElementById('emptyState').style.display = 'block';
+            document.getElementById('automationsList').style.display = 'none';
+            document.getElementById('automationsList').innerHTML = '';
+        }
+
+        function hideEmptyState() {
+            document.getElementById('emptyState').style.display = 'none';
+        }
+
+        async function loadAutomationsCards(page = 1, search = '') {
+            showLoading();
+            hideError();
+            hideEmptyState();
+            
+            try {
+                let url = `/automations/paginated?page=${page}&per_page=10`;
+                if (search) {
+                    url += `&search=${encodeURIComponent(search)}`;
+                }
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.automations && data.automations.length > 0) {
+                    displayAutomations(data.automations);
+                    updatePagination(data.current_page, data.total_pages);
+                    currentPage = data.current_page;
+                    totalPages = data.total_pages;
+                } else {
+                    showEmptyState();
+                }
+                
+            } catch (error) {
+                showError(`Erro ao carregar automações: ${error.message}`);
+                showEmptyState();
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function displayAutomations(automations) {
+            const container = document.getElementById('automationsList');
+            container.innerHTML = '';
+            
+            hideEmptyState();
+            container.style.display = 'grid';
+            
+            automations.forEach(automation => {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'card';
+                
+                const launchDate = automation.launch_date ? new Date(automation.launch_date).toLocaleDateString('pt-BR') : 'Não informado';
+                const description = automation.description || 'Nenhuma descrição disponível';
+                
+                const imageHtml = automation.image_base64 ? 
+                    `<div style="margin-bottom: 12px; text-align: center;">
+                        <img src="${automation.image_base64}" alt="${automation.name}" 
+                             style="width: 80%; height: 100px; border-radius: 6px; border: 1px solid #dfe1e6; object-fit: cover;" />
+                    </div>` : 
+                    `<div style="margin-bottom: 12px; text-align: center;">
+                        <div style="width: 80%; height: 100px; background: linear-gradient(135deg, #0065ff 0%, #0047cc 100%); border-radius: 6px; border: 1px solid #dfe1e6; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; margin: 0 auto;">
+                            <div style="font-size: 28px; margin-bottom: 3px;">🤖</div>
+                            <div style="font-size: 9px; font-weight: 600; opacity: 0.9;">AUTOMAÇÃO</div>
+                        </div>
+                    </div>`;
+
+                cardDiv.innerHTML = `
+                    ${imageHtml}
+                    <div class="card-title">📝 ${automation.name}</div>
+                    <div class="card-meta">
+                        <strong>🆔 ID:</strong> ${automation.id}
+                    </div>
+                    <div class="card-meta">
+                        <strong>👥 Squad:</strong> ${automation.squad || 'Não informado'}
+                    </div>
+                    <div class="card-meta">
+                        <strong>🎯 Tipo:</strong> ${automation.type || 'Não informado'}
+                    </div>
+                    <div class="card-meta">
+                        <strong>💻 Linguagem:</strong> ${automation.language}
+                    </div>
+                    <div class="card-meta">
+                        <strong>🥒 Cucumber:</strong> ${automation.cucumber || 'Não informado'}
+                    </div>
+                    <div class="card-meta">
+                        <strong>📅 Lançamento:</strong> ${launchDate}
+                    </div>
+                    <div class="card-description" title="${description}">
+                        📄 ${description}
+                    </div>
+                    <div class="card-actions">
+                        ${automation.git ? `<a href="${automation.git}" class="btn-repo" target="_blank">🔗 Abrir Repositório</a>` : '<span style="color: #5e6c84; font-size: 12px;">🔗 Sem repositório</span>'}
+                    </div>
+                `;
+                
+                container.appendChild(cardDiv);
+            });
+        }
+
+        function updatePagination(currentPage, totalPages) {
+            const container = document.getElementById('pagination');
+            container.innerHTML = '';
+            
+            if (totalPages <= 1) return;
+            
+            // Botão anterior
+            const prevButton = document.createElement('button');
+            prevButton.textContent = '← Anterior';
+            prevButton.disabled = currentPage === 1;
+            prevButton.onclick = () => loadAutomationsCards(currentPage - 1, currentSearch);
+            container.appendChild(prevButton);
+            
+            // Números das páginas
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.className = i === currentPage ? 'active' : '';
+                pageButton.onclick = () => loadAutomationsCards(i, currentSearch);
+                container.appendChild(pageButton);
+            }
+            
+            // Botão próximo
+            const nextButton = document.createElement('button');
+            nextButton.textContent = 'Próximo →';
+            nextButton.disabled = currentPage === totalPages;
+            nextButton.onclick = () => loadAutomationsCards(currentPage + 1, currentSearch);
+            container.appendChild(nextButton);
+        }
+
+        function filterAutomations() {
+            const searchTerm = document.getElementById('automationSearch').value.trim();
+            currentSearch = searchTerm;
+            loadAutomationsCards(1, searchTerm);
+        }
+
+        function clearSearch() {
+            document.getElementById('automationSearch').value = '';
+            currentSearch = '';
+            loadAutomationsCards(1, '');
+        }
+
+        function refreshAutomations() {
+            loadAutomationsCards(currentPage, currentSearch);
+        }
+
+        // Carregar automações ao inicializar a página
+        window.onload = () => {
+            loadAutomationsCards();
+        };
+
+        // Permitir busca com Enter
+        document.getElementById('automationSearch').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                filterAutomations();
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>🛡️ Idwall Test Guard</h2>
+        </div>
+        <div class="sidebar-nav">
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Automações</div>
+                <a href="/automations/new">
+                    <span class="sidebar-icon">➕</span>
+                    Cadastrar Automação
+                </a>
+                <a href="/automations/list" class="active">
+                    <span class="sidebar-icon">📋</span>
+                    Automações Cadastradas
+                </a>
+                <a href="/">
+                    <span class="sidebar-icon">📊</span>
+                    Relatórios de Automação
+                </a>
+                <a href="/dash">
+                    <span class="sidebar-icon">📈</span>
+                    Dashboard
+                </a>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Contratos</div>
+                <a href="/contracts/new">
+                    <span class="sidebar-icon">📝</span>
+                    Cadastrar Coleção
+                </a>
+                <a href="/contracts/list">
+                    <span class="sidebar-icon">📚</span>
+                    Lista de Coleções
+                </a>
+                <a href="/contracts-dash">
+                    <span class="sidebar-icon">📊</span>
+                    Dashboard de Contratos
+                </a>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Ferramentas</div>
+                <a href="/schema-generator">
+                    <span class="sidebar-icon">⚙️</span>
+                    Gerador de Schema
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h1>Automações Cadastradas</h1>
+            <p>Visualize e gerencie todas as automações cadastradas no sistema.</p>
+            
+            <div class="controls">
+                <div class="search-box">
+                    <input type="text" id="automationSearch" placeholder="Buscar por nome da automação..." />
+                    <button class="btn btn-primary" onclick="filterAutomations()">Buscar</button>
+                    <button class="btn btn-secondary" onclick="clearSearch()">Limpar</button>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="refreshAutomations()">Atualizar</button>
+                </div>
+            </div>
+
+            <div id="errorMessage" class="error" style="display: none;"></div>
+            <div id="loadingMessage" class="loading" style="display: none;">Carregando automações...</div>
+            <div id="emptyState" class="empty-state" style="display: none;">Nenhuma automação encontrada.</div>
+            
+            <div id="automationsList" class="cards-grid">
+                <!-- Cards serão carregados aqui -->
+            </div>
+            
+            <div id="pagination" class="pagination">
+                <!-- Paginação será carregada aqui -->
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

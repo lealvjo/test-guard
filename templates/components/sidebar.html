@@ -1,0 +1,50 @@
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h2>🛡️ Idwall Test Guard</h2>
+    </div>
+    <div class="sidebar-nav">
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Automações</div>
+            <a href="/automations/new">
+                <span class="sidebar-icon">➕</span>
+                Cadastrar Automação
+            </a>
+            <a href="/automations/list" {% if request.endpoint == 'automation_controller.automations_list' %}class="active"{% endif %}>
+                <span class="sidebar-icon">📋</span>
+                Automações Cadastradas
+            </a>
+            <a href="/">
+                <span class="sidebar-icon">📊</span>
+                Relatórios de Automação
+            </a>
+            <a href="/dash">
+                <span class="sidebar-icon">📈</span>
+                Dashboard
+            </a>
+        </div>
+        
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Contratos</div>
+            <a href="/contracts/new">
+                <span class="sidebar-icon">📝</span>
+                Cadastrar Coleção
+            </a>
+            <a href="/contracts/list" {% if request.endpoint == 'test_contract_controller.contracts_list' %}class="active"{% endif %}>
+                <span class="sidebar-icon">📚</span>
+                Lista de Coleções
+            </a>
+            <a href="/contracts-dash">
+                <span class="sidebar-icon">📊</span>
+                Dashboard de Contratos
+            </a>
+        </div>
+        
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Ferramentas</div>
+            <a href="/schema-generator" {% if request.endpoint == 'test_contract_controller.schema_generator' %}class="active"{% endif %}>
+                <span class="sidebar-icon">⚙️</span>
+                Gerador de Schema
+            </a>
+        </div>
+    </div>
+</div>
