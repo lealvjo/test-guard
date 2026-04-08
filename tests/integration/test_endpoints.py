@@ -110,6 +110,9 @@ def test_report_endpoints_flow(client):
             "status": "PASSED",
             "url_report": "https://example.com/report",
             "tests": 10,
+            "junit": {
+                "testsuite": {"name": "suite-api", "tests": 10, "failures": 0}
+            },
         },
     )
     assert report_resp.status_code == 201
@@ -118,3 +121,62 @@ def test_report_endpoints_flow(client):
     assert reports_paginated_resp.status_code == 200
     data = reports_paginated_resp.get_json()
     assert data["total_reports"] >= 1
+    assert isinstance(data["reports"][0]["junit"], dict)
+
+
+@pytest.mark.integration
+def test_report_accepts_null_junit(client):
+    automation_name = _uid("it-report-null-junit")
+    create_automation_resp = client.post("/register-automation", json=_create_automation_payload(automation_name))
+    assert create_automation_resp.status_code == 201
+    automation_id = create_automation_resp.get_json()["automation_id"]
+
+    report_resp = client.post(
+        "/report",
+        json={
+            "automation_id": automation_id,
+            "status": "PASSED",
+            "url_report": "https://example.com/report-null-junit",
+            "tests": 3,
+            "junit": None,
+        },
+    )
+    assert report_resp.status_code == 201
+
+
+@pytest.mark.integration
+def test_open_junit_report_page(client):
+    automation_name = _uid("it-junit-page")
+    create_automation_resp = client.post("/register-automation", json=_create_automation_payload(automation_name))
+    assert create_automation_resp.status_code == 201
+    automation_id = create_automation_resp.get_json()["automation_id"]
+
+    create_report_resp = client.post(
+        "/report",
+        json={
+            "automation_id": automation_id,
+            "status": "PASSED",
+            "url_report": "https://example.com/report-junit-page",
+            "tests": 2,
+            "junit": {
+                "testsuite": {
+                    "name": "suite-smoke",
+                    "tests": 2,
+                    "failures": 0,
+                    "testcase": [
+                        {"classname": "smoke.test_api", "name": "test_health", "time": "0.01"},
+                        {"classname": "smoke.test_api", "name": "test_ping", "time": "0.02"},
+                    ],
+                }
+            },
+        },
+    )
+    assert create_report_resp.status_code == 201
+
+    reports_resp = client.get(f"/reports/paginated?page=1&per_page=10&search={automation_name}")
+    assert reports_resp.status_code == 200
+    report_id = reports_resp.get_json()["reports"][0]["id_report"]
+
+    junit_page_resp = client.get(f"/reports/{report_id}/junit")
+    assert junit_page_resp.status_code == 200
+    assert b"Relat" in junit_page_resp.data

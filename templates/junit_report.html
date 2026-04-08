@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório JUnit</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f4f5f7; color: #172b4d; margin: 0; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .header { background: #ffffff; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 16px; }
+        .title { margin: 0 0 8px 0; color: #0052cc; }
+        .meta { color: #5e6c84; font-size: 14px; }
+        .summary-grid { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 12px; margin: 16px 0; }
+        .card { background: #ffffff; border-radius: 8px; padding: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; }
+        .label { font-size: 12px; color: #5e6c84; text-transform: uppercase; }
+        .value { font-size: 24px; font-weight: 700; margin-top: 6px; }
+        .value.ok { color: #1f845a; }
+        .value.fail { color: #c9372c; }
+        .table-wrap { background: #ffffff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px 12px; border-bottom: 1px solid #ebecf0; text-align: left; vertical-align: top; }
+        th { background: #f7f8f9; font-size: 13px; }
+        .status-pass { color: #1f845a; font-weight: 700; }
+        .status-fail { color: #c9372c; font-weight: 700; }
+        .error { background: #ffebe6; color: #ae2e24; border: 1px solid #ffd2cc; border-radius: 8px; padding: 12px; margin-top: 12px; }
+        .empty { color: #5e6c84; padding: 20px; }
+        .actions { margin-top: 12px; }
+        .btn { display: inline-block; background: #0052cc; color: #fff; text-decoration: none; padding: 8px 12px; border-radius: 6px; font-size: 14px; }
+        .pagination { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 14px; }
+        .pagination-meta { color: #5e6c84; font-size: 13px; }
+        .pagination-actions { display: flex; gap: 8px; }
+        .btn-page { background: #6b7280; }
+        .btn-page.disabled { background: #c1c7d0; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">Relatório JUnit</h1>
+            {% if report %}
+            <div class="meta">
+                Automação: {{ report.name }} | Report ID: {{ report.id_report }} | Squad: {{ report.squad }} | Status execução: {{ report.status }}
+            </div>
+            {% endif %}
+            <div class="actions">
+                <a class="btn" href="/">Voltar para relatórios</a>
+            </div>
+            {% if error %}
+            <div class="error">{{ error }}</div>
+            {% endif %}
+        </div>
+
+        {% if summary %}
+        <div class="summary-grid">
+            <div class="card"><div class="label">Suíte</div><div class="value">{{ summary.suite_name }}</div></div>
+            <div class="card"><div class="label">Tests</div><div class="value">{{ summary.tests }}</div></div>
+            <div class="card"><div class="label">Failures</div><div class="value fail">{{ summary.failures }}</div></div>
+            <div class="card"><div class="label">Errors</div><div class="value fail">{{ summary.errors }}</div></div>
+            <div class="card"><div class="label">Skipped / Time</div><div class="value ok">{{ summary.skipped }} / {{ summary.time }}</div></div>
+        </div>
+        {% endif %}
+
+        <div class="table-wrap">
+            {% if testcases and testcases|length > 0 %}
+            <table>
+                <thead>
+                    <tr class="tc-row">
+                        <th>Classe</th>
+                        <th>Teste</th>
+                        <th>Tempo (s)</th>
+                        <th>Status</th>
+                        <th>Detalhe</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tc in testcases %}
+                    {% set failure = tc.get('failure') %}
+                    {% set error_item = tc.get('error') %}
+                    {% set skipped_item = tc.get('skipped') %}
+                    <tr>
+                        <td>{{ tc.get('classname', '-') }}</td>
+                        <td>{{ tc.get('name', '-') }}</td>
+                        <td>{{ tc.get('time', '-') }}</td>
+                        <td>
+                            {% if failure or error_item %}
+                            <span class="status-fail">FAILED</span>
+                            {% elif skipped_item %}
+                            <span>SKIPPED</span>
+                            {% else %}
+                            <span class="status-pass">PASSED</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if failure %}
+                            {{ failure.get('message', failure) if failure is mapping else failure }}
+                            {% elif error_item %}
+                            {{ error_item.get('message', error_item) if error_item is mapping else error_item }}
+                            {% elif skipped_item %}
+                            {{ skipped_item.get('message', skipped_item) if skipped_item is mapping else skipped_item }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty">Nenhum testcase encontrado no objeto JUnit deste relatório.</div>
+            {% endif %}
+        </div>
+
+        {% if pagination is defined and pagination %}
+        <div class="pagination">
+            <div class="pagination-meta">
+                Exibindo {{ ((pagination.current_page - 1) * pagination.per_page) + 1 }}-
+                {{ ((pagination.current_page - 1) * pagination.per_page) + (testcases|length) }}
+                de {{ pagination.total_testcases }} testcases |
+                Página {{ pagination.current_page }} de {{ pagination.total_pages }}
+            </div>
+            <div class="pagination-actions">
+                <a class="btn btn-page {% if not pagination.has_prev %}disabled{% endif %}"
+                   href="/reports/{{ report.id_report }}/junit?page={{ pagination.prev_page }}&per_page={{ pagination.per_page }}">
+                    ← Anterior
+                </a>
+                {% for p in range(1, pagination.total_pages + 1) %}
+                <a class="btn btn-page {% if p == pagination.current_page %}disabled{% endif %}"
+                   href="/reports/{{ report.id_report }}/junit?page={{ p }}&per_page={{ pagination.per_page }}">
+                    {{ p }}
+                </a>
+                {% endfor %}
+                <a class="btn btn-page {% if not pagination.has_next %}disabled{% endif %}"
+                   href="/reports/{{ report.id_report }}/junit?page={{ pagination.next_page }}&per_page={{ pagination.per_page }}">
+                    Próxima →
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <div id="clientPagination" class="pagination" style="display:none;">
+            <div class="pagination-meta" id="clientPaginationMeta"></div>
+            <div class="pagination-actions">
+                <a class="btn btn-page" href="#" id="clientPrev">← Anterior</a>
+                <span id="clientPages"></span>
+                <a class="btn btn-page" href="#" id="clientNext">Próxima →</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function () {
+            const rows = Array.from(document.querySelectorAll('tbody tr'));
+            const perPage = 10;
+            if (!rows.length) return;
+
+            const serverPaginationVisible = !!document.querySelector('.pagination-meta') && document.querySelector('.pagination-meta').textContent.includes('Exibindo');
+            if (serverPaginationVisible && rows.length <= perPage) return;
+
+            const container = document.getElementById('clientPagination');
+            const meta = document.getElementById('clientPaginationMeta');
+            const pagesContainer = document.getElementById('clientPages');
+            const prevBtn = document.getElementById('clientPrev');
+            const nextBtn = document.getElementById('clientNext');
+            container.style.display = 'flex';
+
+            let currentPage = 1;
+            const total = rows.length;
+            const totalPages = Math.max(1, Math.ceil(total / perPage));
+
+            function render() {
+                const start = (currentPage - 1) * perPage;
+                const end = start + perPage;
+                rows.forEach((row, idx) => {
+                    row.style.display = (idx >= start && idx < end) ? '' : 'none';
+                });
+
+                meta.textContent = `Exibindo ${start + 1}-${Math.min(end, total)} de ${total} testcases | Página ${currentPage} de ${totalPages}`;
+
+                pagesContainer.innerHTML = '';
+                for (let p = 1; p <= totalPages; p++) {
+                    const link = document.createElement('a');
+                    link.href = '#';
+                    link.className = 'btn btn-page' + (p === currentPage ? ' disabled' : '');
+                    link.textContent = String(p);
+                    link.onclick = (e) => {
+                        e.preventDefault();
+                        if (p !== currentPage) {
+                            currentPage = p;
+                            render();
+                        }
+                    };
+                    pagesContainer.appendChild(link);
+                }
+
+                prevBtn.classList.toggle('disabled', currentPage === 1);
+                nextBtn.classList.toggle('disabled', currentPage === totalPages);
+            }
+
+            prevBtn.onclick = (e) => {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    currentPage -= 1;
+                    render();
+                }
+            };
+
+            nextBtn.onclick = (e) => {
+                e.preventDefault();
+                if (currentPage < totalPages) {
+                    currentPage += 1;
+                    render();
+                }
+            };
+
+            render();
+        })();
+    </script>
+</body>
+</html>

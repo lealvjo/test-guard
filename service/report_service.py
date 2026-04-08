@@ -5,8 +5,8 @@ class ReportService:
     def __init__(self):
         self.repository = ReportRepository()
 
-    def register_report(self, automation_id, status, url_report, report_date, name, squad, tests):
-        self.repository.insert_report_automation(automation_id, status, url_report, report_date, name, squad, tests)
+    def register_report(self, automation_id, status, url_report, report_date, name, squad, tests, junit=None):
+        self.repository.insert_report_automation(automation_id, status, url_report, report_date, name, squad, tests, junit)
 
     def fetch_all_reports(self):
         reports = self.repository.get_all_report_automations()
@@ -19,4 +19,7 @@ class ReportService:
             reports, total_reports = self.repository.get_paginated_report_automations(page, per_page)
 
         return reports, total_reports
+
+    def fetch_report_by_id(self, report_id):
+        return self.repository.get_report_by_id(report_id)
 

@@ -121,6 +121,8 @@
         .report-actions { display: flex; align-items: center; gap: 8px; }
         .btn-report { background-color: #0065ff; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
         .btn-report:hover { background-color: #0052cc; }
+        .btn-junit { background-color: #1f845a; }
+        .btn-junit:hover { background-color: #216e4e; }
 
         /* Paginação */
         .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px; }
@@ -394,6 +396,7 @@
                         </div>
                         <div style="text-align: center; margin-top: 16px;">
                             <a href="${report.url_report}" class="btn-report" target="_blank">🔗 Abrir Relatório</a>
+                            ${report.junit ? `<a href="/reports/${report.id_report}/junit" class="btn-report btn-junit" target="_blank">🧪 Abrir Relatório JUnit</a>` : ''}
                         </div>
                     </div>
                 `;

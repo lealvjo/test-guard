@@ -1,4 +1,5 @@
 import sqlite3
+import json
 from fuzzywuzzy import process
 
 
@@ -24,15 +25,36 @@ class ReportRepository:
                                     report_date TEXT NOT NULL,
                                     name TEXT NOT NULL,
                                     squad TEXT NOT NULL,
-                                    tests INTEGER NOT NULL
+                                    tests INTEGER NOT NULL,
+                                    junit TEXT
                                 )''')
             self.conn.commit()
+        else:
+            cursor.execute("PRAGMA table_info(reports_automation)")
+            columns = [column[1] for column in cursor.fetchall()]
+            if 'junit' not in columns:
+                cursor.execute("ALTER TABLE reports_automation ADD COLUMN junit TEXT")
+                self.conn.commit()
 
-    def insert_report_automation(self, automation_id, status, url_report, report_date, name, squad, tests):
+    def insert_report_automation(self, automation_id, status, url_report, report_date, name, squad, tests, junit=None):
+        junit_json = json.dumps(junit) if junit is not None else None
         self.conn.execute(
-            'INSERT INTO reports_automation (automation_id, status, url_report, report_date, name, squad, tests) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            (automation_id, status, url_report, report_date, name, squad, tests))
+            'INSERT INTO reports_automation (automation_id, status, url_report, report_date, name, squad, tests, junit) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            (automation_id, status, url_report, report_date, name, squad, tests, junit_json))
         self.conn.commit()
+
+    @staticmethod
+    def _deserialize_junit(report):
+        junit_value = report.get('junit')
+        if not junit_value:
+            report['junit'] = None
+            return report
+
+        try:
+            report['junit'] = json.loads(junit_value)
+        except (TypeError, json.JSONDecodeError):
+            report['junit'] = None
+        return report
 
     def get_all_report_automations(self):
         # JOIN com a tabela automations para buscar o campo type
@@ -44,7 +66,7 @@ class ReportRepository:
         """
         cursor = self.conn.execute(query)
         rows = cursor.fetchall()
-        reports = [dict(row) for row in rows]
+        reports = [self._deserialize_junit(dict(row)) for row in rows]
         return reports
 
     def get_paginated_report_automations(self, page, per_page):
@@ -60,7 +82,7 @@ class ReportRepository:
 
         cursor = self.conn.execute(query, (per_page, offset))
         rows = cursor.fetchall()
-        reports = [dict(row) for row in rows]
+        reports = [self._deserialize_junit(dict(row)) for row in rows]
 
         # Contando o total de relatórios
         count_query = "SELECT COUNT(*) FROM reports_automation"
@@ -79,7 +101,7 @@ class ReportRepository:
         """
         cursor = self.conn.execute(query)
         rows = cursor.fetchall()
-        reports = [dict(row) for row in rows]
+        reports = [self._deserialize_junit(dict(row)) for row in rows]
 
         # Realiza a busca fuzzy no nome dos relatórios
         report_names = [report['name'] for report in reports]
@@ -110,3 +132,16 @@ class ReportRepository:
         paginated_reports = matched_reports[offset:offset + per_page]
 
         return paginated_reports, total_reports
+
+    def get_report_by_id(self, report_id):
+        query = """
+        SELECT r.*, a.type
+        FROM reports_automation r
+        LEFT JOIN automations_db.automations a ON r.automation_id = a.id
+        WHERE r.id_report = ?
+        """
+        cursor = self.conn.execute(query, (report_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        return self._deserialize_junit(dict(row))
