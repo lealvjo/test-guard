@@ -21,12 +21,12 @@ function closeAddContractModal() {
 
 function formatContractJson() {
     const textarea = document.getElementById('contractSchemaInput');
-    try {
-        const json = JSON.parse(textarea.value);
-        textarea.value = JSON.stringify(json, null, 2);
-        showNotification('JSON formatado com sucesso!', 'success');
-    } catch (e) {
-        showNotification(`JSON inválido: ${e.message}`, 'error');
+    const result = formatJsonText(textarea.value);
+    if (result.ok) {
+        textarea.value = result.text;
+        showToastNotification('JSON formatado com sucesso!', 'success');
+    } else {
+        showToastNotification(`JSON inválido: ${result.error.message}`, 'error');
     }
 }
 
@@ -39,28 +39,27 @@ async function addContractToCollection() {
     const schemaText = document.getElementById('contractSchemaInput').value.trim();
 
     if (!contractName || !contractVersion || !contractMethod || !contractEndpoint || !schemaText) {
-        showNotification('Preencha todos os campos obrigatórios.', 'error');
+        showToastNotification('Preencha todos os campos obrigatórios.', 'error');
         return;
     }
 
     const allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
     if (!allowedMethods.includes(contractMethod)) {
-        showNotification(`Método HTTP '${contractMethod}' não é válido. Métodos permitidos: ${allowedMethods.join(', ')}`, 'error');
+        showToastNotification(`Método HTTP '${contractMethod}' não é válido. Métodos permitidos: ${allowedMethods.join(', ')}`, 'error');
         return;
     }
 
     if (!contractEndpoint.startsWith('/')) {
-        showNotification("Endpoint deve começar com '/'. Exemplo: /api/users", 'error');
+        showToastNotification("Endpoint deve começar com '/'. Exemplo: /api/users", 'error');
         return;
     }
 
-    let schema;
-    try {
-        schema = JSON.parse(schemaText);
-    } catch (e) {
-        showNotification(`JSON inválido: ${e.message}`, 'error');
+    const parsedSchema = parseJsonText(schemaText);
+    if (!parsedSchema.ok) {
+        showToastNotification(`JSON inválido: ${parsedSchema.error.message}`, 'error');
         return;
     }
+    const schema = parsedSchema.data;
 
     const payload = {
         action: 'add',
@@ -85,50 +84,15 @@ async function addContractToCollection() {
         const result = await response.json();
 
         if (response.ok) {
-            showNotification('Contrato adicionado com sucesso!', 'success');
+            showToastNotification('Contrato adicionado com sucesso!', 'success');
             closeAddContractModal();
             refreshContracts();
         } else {
-            showNotification(`Erro: ${result.error || 'Erro desconhecido'}`, 'error');
+            showToastNotification(`Erro: ${result.error || 'Erro desconhecido'}`, 'error');
         }
     } catch (error) {
-        showNotification(`Erro na requisição: ${error.message}`, 'error');
+        showToastNotification(`Erro na requisição: ${error.message}`, 'error');
     }
-}
-
-function showNotification(message, type = 'info') {
-    const existingNotification = document.getElementById('toast-notification');
-    if (existingNotification) {
-        existingNotification.remove();
-    }
-
-    const notification = document.createElement('div');
-    notification.id = 'toast-notification';
-    notification.className = `toast toast-${type}`;
-    notification.innerHTML = `
-        <div class="toast-content">
-            <span class="toast-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
-            <span class="toast-message">${message}</span>
-            <button class="toast-close" onclick="this.parentElement.parentElement.remove()">×</button>
-        </div>
-    `;
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.classList.add('toast-show');
-    }, 100);
-
-    setTimeout(() => {
-        if (notification.parentElement) {
-            notification.classList.remove('toast-show');
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.remove();
-                }
-            }, 300);
-        }
-    }, 4000);
 }
 
 document.addEventListener('click', function(event) {

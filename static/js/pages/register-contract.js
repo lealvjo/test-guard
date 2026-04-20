@@ -95,10 +95,10 @@ function updateSchemaNumbers() {
 
 function formatJson(schemaIndex) {
     const textarea = document.getElementById(`expected_${schemaIndex}`);
-    try {
-        const json = JSON.parse(textarea.value);
-        textarea.value = JSON.stringify(json, null, 2);
-    } catch (e) {
+    const result = formatJsonText(textarea.value);
+    if (result.ok) {
+        textarea.value = result.text;
+    } else {
         showFormAlert('JSON inválido para formatação', true);
     }
 }
@@ -189,8 +189,13 @@ async function submitContract(event) {
             return showFormAlert(`Endpoint deve começar com '/' no Schema ${i + 1}. Exemplo: /api/users`, true);
         }
 
+        const parsedExpected = parseJsonText(expectedJson);
+        if (!parsedExpected.ok) {
+            return showFormAlert(`JSON inválido no Schema ${i + 1}: ${parsedExpected.error.message}`, true);
+        }
+
         try {
-            const expected = JSON.parse(expectedJson);
+            const expected = parsedExpected.data;
             payload.schemas.push({
                 contract: contractName,
                 version: contractVersion,

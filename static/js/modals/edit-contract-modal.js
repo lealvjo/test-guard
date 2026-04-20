@@ -99,12 +99,12 @@ async function loadCurrentSchema(collectionName, contractName, contractVersion) 
 
 function formatEditJson() {
     const textarea = document.getElementById('editContractSchema');
-    try {
-        const json = JSON.parse(textarea.value);
-        textarea.value = JSON.stringify(json, null, 2);
+    const result = formatJsonText(textarea.value);
+    if (result.ok) {
+        textarea.value = result.text;
         showEditValidationResult('JSON formatado com sucesso!', true);
-    } catch (e) {
-        showEditValidationResult(`JSON inválido: ${e.message}`, false);
+    } else {
+        showEditValidationResult(`JSON inválido: ${result.error.message}`, false);
     }
 }
 
@@ -139,8 +139,14 @@ async function saveContractEdit() {
         return;
     }
 
+    const parsedSchema = parseJsonText(schemaText);
+    if (!parsedSchema.ok) {
+        showEditValidationResult('JSON Schema inválido. Verifique a sintaxe.', false);
+        return;
+    }
+
     try {
-        const schema = JSON.parse(schemaText);
+        const schema = parsedSchema.data;
         const collectionResponse = await fetch(`/contracts/paginated?page=1&per_page=100&search=${encodeURIComponent(currentEditData.collectionName)}`);
         const collectionData = await collectionResponse.json();
 
@@ -191,11 +197,7 @@ async function saveContractEdit() {
             showEditValidationResult(`Erro ao atualizar contrato: ${result.error || 'Erro desconhecido'}`, false);
         }
     } catch (error) {
-        if (error instanceof SyntaxError) {
-            showEditValidationResult('JSON Schema inválido. Verifique a sintaxe.', false);
-        } else {
-            showEditValidationResult(`Erro ao salvar: ${error.message}`, false);
-        }
+        showEditValidationResult(`Erro ao salvar: ${error.message}`, false);
     }
 }
 

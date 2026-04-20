@@ -76,12 +76,12 @@ async function loadSchemaPreview() {
 
 function formatValidationJson() {
     const textarea = document.getElementById('validationBody');
-    try {
-        const json = JSON.parse(textarea.value);
-        textarea.value = JSON.stringify(json, null, 2);
+    const result = formatJsonText(textarea.value, {allowComments: true});
+    if (result.ok) {
+        textarea.value = result.text;
         showValidationResult(true, 'JSON formatado com sucesso!');
         refreshApiDocsIfVisible();
-    } catch (error) {
+    } else {
         showValidationResult(false, 'JSON inválido! Verifique a sintaxe.');
     }
 }
@@ -116,13 +116,6 @@ function refreshApiDocsIfVisible() {
     if (modal && modal.style.display === 'block') {
         renderApiDocExample(currentApiDocLanguage);
     }
-}
-
-function cleanJsonFromComments(jsonText) {
-    return jsonText
-        .replace(/\/\/.*$/gm, '')
-        .replace(/\/\*[\s\S]*?\*\//g, '')
-        .trim();
 }
 
 function renderApiDocExample(language) {
@@ -358,12 +351,9 @@ async function executeValidation() {
         return;
     }
 
-    const cleanJsonText = cleanJsonFromComments(bodyText);
-
-    try {
-        JSON.parse(cleanJsonText);
-    } catch (error) {
-        showValidationResult(false, 'JSON inválido: ' + error.message);
+    const parsedBody = parseJsonText(bodyText, {allowComments: true});
+    if (!parsedBody.ok) {
+        showValidationResult(false, 'JSON inválido: ' + parsedBody.error.message);
         return;
     }
 
@@ -378,7 +368,7 @@ async function executeValidation() {
                 contract_name: currentValidationData.contractName,
                 version: currentValidationData.version,
                 method: currentValidationData.method,
-                body_to_validate: JSON.parse(cleanJsonText)
+                body_to_validate: parsedBody.data
             })
         });
 

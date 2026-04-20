@@ -12,13 +12,13 @@ function handleImageUpload(event) {
 
 function processImageFile(file) {
     if (!file.type.startsWith('image/')) {
-        showNotification('Erro de Validação', 'Por favor, selecione apenas arquivos de imagem.', 'error');
+        showToastNotification('Erro de Validação', 'Por favor, selecione apenas arquivos de imagem.', 'error');
         document.getElementById('image').value = '';
         return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
-        showNotification('Erro de Validação', 'A imagem deve ter no máximo 2MB.', 'error');
+        showToastNotification('Erro de Validação', 'A imagem deve ter no máximo 2MB.', 'error');
         document.getElementById('image').value = '';
         return;
     }
@@ -77,34 +77,6 @@ function setupDragAndDrop() {
     });
 }
 
-function showNotification(title, message, type = 'success') {
-    const container = document.getElementById('toastContainer');
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-
-    const icon = type === 'success' ? '✅' : '❌';
-
-    toast.innerHTML = `
-        <div class="toast-icon">${icon}</div>
-        <div class="toast-content">
-            <div class="toast-title">${title}</div>
-            <div class="toast-message">${message}</div>
-        </div>
-    `;
-
-    container.appendChild(toast);
-    setTimeout(() => toast.classList.add('show'), 100);
-
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => {
-            if (container.contains(toast)) {
-                container.removeChild(toast);
-            }
-        }, 300);
-    }, 5000);
-}
-
 async function submitAutomation(event) {
     event.preventDefault();
 
@@ -124,14 +96,14 @@ async function submitAutomation(event) {
     const required = ['name', 'squad', 'type', 'description', 'language', 'cucumber', 'launch_date', 'git'];
     for (const key of required) {
         if (!payload[key]) {
-            showNotification('Erro de Validação', 'Preencha todos os campos obrigatórios.', 'error');
+            showToastNotification('Erro de Validação', 'Preencha todos os campos obrigatórios.', 'error');
             return;
         }
     }
 
     const allowedTypes = ['Frontend', 'Backend', 'Mobile'];
     if (!allowedTypes.includes(payload.type)) {
-        showNotification('Erro de Validação', `Tipo '${payload.type}' não é válido. Tipos permitidos: ${allowedTypes.join(', ')}`, 'error');
+        showToastNotification('Erro de Validação', `Tipo '${payload.type}' não é válido. Tipos permitidos: ${allowedTypes.join(', ')}`, 'error');
         return;
     }
 
@@ -148,11 +120,11 @@ async function submitAutomation(event) {
             throw new Error(result.error || 'Falha ao salvar automação');
         }
 
-        showNotification('Sucesso!', 'Automação cadastrada com sucesso!', 'success');
+        showToastNotification('Sucesso!', 'Automação cadastrada com sucesso!', 'success');
         document.getElementById('automationForm').reset();
         removeImage();
     } catch (e) {
-        showNotification('Erro de Validação', e.message, 'error');
+        showToastNotification('Erro de Validação', e.message, 'error');
     }
 }
 
