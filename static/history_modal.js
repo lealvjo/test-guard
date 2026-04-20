@@ -46,13 +46,14 @@ async function showValidationHistory() {
 function displayHistoryItems(history) {
     const historyContent = document.getElementById('historyContent');
     
-    let html = '<div style="margin-bottom: 15px; color: #5e6c84; font-size: 14px;">💡 Clique em uma execução para usar o body:</div>';
+    let html = '<div style="margin-bottom: 15px; color: #5e6c84; font-size: 14px;">💡 Clique em uma execução para reutilizar o body:</div>';
     
     history.forEach((item, index) => {
         const date = new Date(item.execution_date).toLocaleString('pt-BR');
         const statusClass = item.valid ? 'success' : 'error';
         const statusIcon = item.valid ? '✅' : '❌';
         const dataPreview = JSON.stringify(item.validated_data, null, 2).substring(0, 100) + '...';
+        const parsedContractIds = parseContractIdentifier(item.contract_id);
         
         // Implementar preview para mensagens longas (mais de 100 caracteres)
         let messageDisplay = item.message;
@@ -71,7 +72,8 @@ function displayHistoryItems(history) {
                 <div class="history-details">
                     <span class="history-version">🔢 ${item.version || 'v1.0'}</span>
                     <span class="history-method">🌐 ${item.method || 'POST'}</span>
-                    <span class="history-contract-id">🆔 ${item.contract_id || 'N/A'}</span>
+                    <span class="history-contract-id">📁 ID Coleção: ${parsedContractIds.collectionId}</span>
+                    <span class="history-contract-id">🧩 ID Schema: ${parsedContractIds.schemaId}</span>
                     ${detailsButton}
                 </div>
                 <div class="history-data-preview">${dataPreview}</div>
@@ -83,6 +85,23 @@ function displayHistoryItems(history) {
     
     // Armazenar histórico para uso posterior
     window.currentHistory = history;
+}
+
+function parseContractIdentifier(contractId) {
+    if (!contractId || typeof contractId !== 'string') {
+        return { collectionId: 'N/A', schemaId: 'N/A' };
+    }
+
+    const parts = contractId.split('-');
+    if (parts.length >= 2) {
+        return {
+            collectionId: parts[0] || 'N/A',
+            schemaId: parts.slice(1).join('-') || 'N/A'
+        };
+    }
+
+    // Fallback para manter algum valor útil visível
+    return { collectionId: contractId, schemaId: 'N/A' };
 }
 
 function showHistoryErrorDetails(index) {
@@ -419,6 +438,11 @@ function includeHistoryModal() {
 
 // Event listener para fechar modal de detalhes ao clicar fora
 document.addEventListener('click', function(event) {
+    const historyModal = document.getElementById('historyModal');
+    if (historyModal && event.target === historyModal) {
+        closeHistoryModal();
+    }
+
     const detailsModal = document.getElementById('historyErrorDetailsModal');
     if (detailsModal && event.target === detailsModal) {
         closeHistoryErrorDetails();

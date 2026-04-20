@@ -43,6 +43,7 @@
             text-decoration: none; 
             display: flex; 
             align-items: center; 
+            white-space: nowrap;
             padding: 15px 25px; 
             margin: 2px 15px; 
             border-radius: 8px; 
@@ -225,7 +226,7 @@
                 </a>
                 <a href="/dash">
                     <span class="sidebar-icon">📈</span>
-                    Dashboard
+                    Dashboard de Métricas
                 </a>
             </div>
             
@@ -578,7 +579,7 @@
         function openAddContractModal(collectionId, collectionName) {
             console.log('Abrindo modal para coleção:', collectionId, collectionName); // Debug
             document.getElementById('modalCollectionId').value = collectionId;
-            document.getElementById('modalCollectionName').textContent = collectionName;
+            document.getElementById('addModalCollectionName').textContent = collectionName;
             document.getElementById('contractNameInput').value = '';
             document.getElementById('contractVersionInput').value = '';
             document.getElementById('contractSchemaInput').value = '';

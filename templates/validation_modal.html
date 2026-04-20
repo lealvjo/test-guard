@@ -7,10 +7,14 @@
         </div>
         <div class="modal-body">
             <div class="modal-info">
+                <div class="modal-info-header">
+                    <span class="modal-info-title">Contexto da validação</span>
+                    <button class="btn-docs-mini" onclick="openApiDocsModal()">📘 API</button>
+                </div>
                 <strong>📁 Coleção:</strong> <span id="modalCollectionName"></span><br>
                 <strong>📄 Contrato:</strong> <span id="modalContractName"></span><br>
                 <strong>🔢 Versão:</strong> <span id="modalVersion">v1.0</span><br>
-                <strong>🌐 Método:</strong> <span id="modalMethod">POST</span>  
+                <strong>🌐 Método:</strong> <span id="modalMethod">POST</span>
             </div>
 
             <div class="modal-two-columns">
@@ -50,6 +54,42 @@
     </div>
 </div>
 
+<!-- Modal de Documentação da API -->
+<div id="apiDocsModal" class="api-docs-modal">
+    <div class="api-docs-modal-content">
+        <div class="api-docs-modal-header">
+            <h3 class="api-docs-modal-title">📘 Documentação da API de Validação</h3>
+            <span class="api-docs-close" onclick="closeApiDocsModal()">&times;</span>
+        </div>
+        <div class="api-docs-modal-body">
+            <div class="api-docs-context">
+                <strong>📁 Coleção:</strong> <span id="apiDocsCollectionName">-</span><br>
+                <strong>📄 Contrato:</strong> <span id="apiDocsContractName">-</span><br>
+                <strong>🔢 Versão:</strong> <span id="apiDocsVersion">v1.0</span><br>
+                <strong>🌐 Método:</strong> <span id="apiDocsMethod">POST</span>
+            </div>
+            <div class="api-docs-section">
+                <div class="api-docs-header">
+                    <h4>Como validar via API</h4>
+                    <button class="btn btn-secondary btn-small" onclick="copyApiDocExample()">📋 Copiar</button>
+                </div>
+                <p class="api-docs-description">
+                    Endpoint: <code>POST /contract-validate</code> com <code>Content-Type: application/json</code>
+                </p>
+                <div class="api-docs-lang-selector">
+                    <button id="api-doc-lang-python" class="btn-lang active" onclick="renderApiDocExample('python')">Python</button>
+                    <button id="api-doc-lang-js" class="btn-lang" onclick="renderApiDocExample('javascript')">JavaScript</button>
+                    <button id="api-doc-lang-ts" class="btn-lang" onclick="renderApiDocExample('typescript')">TypeScript</button>
+                    <button id="api-doc-lang-java" class="btn-lang" onclick="renderApiDocExample('java')">Java</button>
+                    <button id="api-doc-lang-dotnet" class="btn-lang" onclick="renderApiDocExample('dotnet')">.NET</button>
+                    <button id="api-doc-lang-curl" class="btn-lang" onclick="renderApiDocExample('curl')">cURL</button>
+                </div>
+                <pre id="apiDocCode" class="api-docs-code"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal de Histórico será incluída via JavaScript -->
 <script src="/static/history_modal.js"></script>
 
@@ -58,56 +98,79 @@
 
 <style>
     /* Modal */
-    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-    .modal-content { background-color: #ffffff; margin: 3% auto; padding: 25px; border-radius: 8px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #ebecf0; padding-bottom: 15px; }
-    .modal-title { font-size: 20px; font-weight: 600; color: #172b4d; margin: 0; }
-    .close { font-size: 28px; font-weight: bold; cursor: pointer; color: #5e6c84; }
-    .close:hover { color: #172b4d; }
-    .modal-body { margin-bottom: 25px; }
-    .modal-footer { display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid #ebecf0; padding-top: 15px; }
+    #validationModal.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+    #validationModal .modal-content { background-color: #ffffff; margin: 2% auto; padding: 25px; border-radius: 8px; width: 94%; max-width: 1200px; max-height: 92vh; overflow-y: auto; }
+    #validationModal .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #ebecf0; padding-bottom: 15px; }
+    #validationModal .modal-title { font-size: 20px; font-weight: 600; color: #172b4d; margin: 0; }
+    #validationModal .close { font-size: 28px; font-weight: bold; cursor: pointer; color: #5e6c84; }
+    #validationModal .close:hover { color: #172b4d; }
+    #validationModal .modal-body { margin-bottom: 25px; }
+    #validationModal .modal-footer { display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid #ebecf0; padding-top: 15px; }
 
     /* Layout de duas colunas */
-    .modal-two-columns { display: flex; gap: 20px; min-height: 300px; }
-    .modal-left-column { flex: 1; }
-    .modal-right-column { flex: 1; border-left: 1px solid #ebecf0; padding-left: 20px; }
+    #validationModal .modal-two-columns { display: flex; gap: 20px; min-height: 300px; }
+    #validationModal .modal-left-column { flex: 1; }
+    #validationModal .modal-right-column { flex: 1; border-left: 1px solid #ebecf0; padding-left: 20px; }
 
     /* Input JSON */
-    .json-input { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 13px; height: 300px; width: 100%; padding: 12px; border: 1px solid #dfe1e6; border-radius: 6px; background-color: #fafbfc; resize: vertical; }
+    #validationModal .json-input { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 13px; height: 300px; width: 100%; padding: 12px; border: 1px solid #dfe1e6; border-radius: 6px; background-color: #fafbfc; resize: vertical; }
 
     /* Resultado da validação */
-    .validation-result { margin-top: 20px; padding: 15px; border-radius: 6px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
-    .validation-success { background-color: #e3fcef; color: #006644; border: 1px solid #b7ebc6; }
-    .validation-error { background-color: #ffebe6; color: #bf2600; border: 1px solid #ffbdad; }
+    #validationModal .validation-result { margin-top: 20px; padding: 15px; border-radius: 6px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
+    #validationModal .validation-success { background-color: #e3fcef; color: #006644; border: 1px solid #b7ebc6; }
+    #validationModal .validation-error { background-color: #ffebe6; color: #bf2600; border: 1px solid #ffbdad; }
 
     /* Info da modal */
-    .modal-info { margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 6px; border-left: 4px solid #0065ff; }
-    .modal-info strong { color: #172b4d; font-weight: 600; }
-    .modal-info span { color: #5e6c84; }
+    #validationModal .modal-info { margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 6px; border-left: 4px solid #0065ff; }
+    #validationModal .modal-info-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    #validationModal .modal-info-title { color: #172b4d; font-weight: 700; font-size: 14px; }
+    #validationModal .modal-info strong { color: #172b4d; font-weight: 600; }
+    #validationModal .modal-info span { color: #5e6c84; }
 
     /* Preview do Schema */
-    .schema-preview-header { margin-bottom: 15px; }
-    .schema-preview-header h4 { margin: 0; color: #172b4d; font-size: 16px; font-weight: 600; }
-    .schema-preview { background-color: #f8f9fa; border: 1px solid #ebecf0; border-radius: 6px; padding: 15px; height: 300px; overflow-y: auto; }
-    .schema-loading { color: #5e6c84; font-style: italic; text-align: center; padding: 20px; }
-    .schema-content { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; line-height: 1.4; color: #172b4d; white-space: pre-wrap; }
-    .schema-error { color: #bf2600; background-color: #ffebe6; padding: 10px; border-radius: 4px; border: 1px solid #ffbdad; }
+    #validationModal .schema-preview-header { margin-bottom: 15px; }
+    #validationModal .schema-preview-header h4 { margin: 0; color: #172b4d; font-size: 16px; font-weight: 600; }
+    #validationModal .schema-preview { background-color: #f8f9fa; border: 1px solid #ebecf0; border-radius: 6px; padding: 15px; height: 300px; overflow-y: auto; }
+    #validationModal .schema-loading { color: #5e6c84; font-style: italic; text-align: center; padding: 20px; }
+    #validationModal .schema-content { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; line-height: 1.4; color: #172b4d; white-space: pre-wrap; }
+    #validationModal .schema-error { color: #bf2600; background-color: #ffebe6; padding: 10px; border-radius: 4px; border: 1px solid #ffbdad; }
 
     /* Botão Info */
-    .btn-info { background-color: #0065ff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; }
-    .btn-info:hover { background-color: #0052cc; }
+    #validationModal .btn-info { background-color: #0065ff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; }
+    #validationModal .btn-info:hover { background-color: #0052cc; }
 
     /* Botão Success */
-    .btn-success { background-color: #36b37e; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; }
-    .btn-success:hover { background-color: #2d9e5e; }
+    #validationModal .btn-success { background-color: #36b37e; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; }
+    #validationModal .btn-success:hover { background-color: #2d9e5e; }
+    #validationModal .btn-docs-mini { background-color: #6554c0; color: white; border: none; padding: 4px 10px; border-radius: 999px; cursor: pointer; font-size: 12px; font-weight: 600; line-height: 1.4; }
+    #validationModal .btn-docs-mini:hover { background-color: #5243aa; }
+    #validationModal .btn-small { padding: 6px 12px; font-size: 12px; }
+
+    /* Modal de Documentação de API */
+    #apiDocsModal.api-docs-modal { display: none; position: fixed; z-index: 1500; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.55); }
+    #apiDocsModal .api-docs-modal-content { background-color: #ffffff; margin: 2% auto; padding: 24px; border-radius: 10px; width: 95%; max-width: 1250px; max-height: 92vh; overflow-y: auto; }
+    #apiDocsModal .api-docs-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #ebecf0; padding-bottom: 12px; }
+    #apiDocsModal .api-docs-modal-title { margin: 0; color: #172b4d; font-size: 20px; }
+    #apiDocsModal .api-docs-close { font-size: 30px; font-weight: bold; cursor: pointer; color: #5e6c84; }
+    #apiDocsModal .api-docs-close:hover { color: #172b4d; }
+    #apiDocsModal .api-docs-modal-body { margin-top: 8px; }
+    #apiDocsModal .api-docs-context { margin-bottom: 14px; padding: 12px; border-radius: 6px; border-left: 4px solid #6554c0; background: #f8f9fa; color: #172b4d; }
+    #apiDocsModal .api-docs-section { border: 1px solid #dfe1e6; border-radius: 6px; background: #f8f9fa; padding: 12px; }
+    #apiDocsModal .api-docs-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    #apiDocsModal .api-docs-header h4 { margin: 0; color: #172b4d; font-size: 15px; }
+    #apiDocsModal .api-docs-description { margin: 0 0 10px 0; color: #5e6c84; font-size: 13px; }
+    #apiDocsModal .api-docs-lang-selector { display: flex; gap: 8px; margin-bottom: 10px; }
+    #apiDocsModal .btn-lang { background: #ebecf0; color: #172b4d; border: 1px solid #dfe1e6; border-radius: 4px; padding: 6px 10px; font-size: 12px; cursor: pointer; }
+    #apiDocsModal .btn-lang.active { background: #0065ff; color: #ffffff; border-color: #0065ff; }
+    #apiDocsModal .api-docs-code { margin: 0; max-height: 62vh; overflow: auto; background: #172b4d; color: #dfe1e6; border-radius: 6px; padding: 12px; font-size: 12px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
 
     /* Tooltips Bonitos */
-    .tooltip {
+    #validationModal .tooltip {
         position: relative;
         display: inline-block;
     }
     
-    .tooltip .tooltiptext {
+    #validationModal .tooltip .tooltiptext {
         visibility: hidden;
         width: 280px;
         background-color: #172b4d;
@@ -129,18 +192,18 @@
     }
     
     /* Tooltip acima da modal - posição alternativa */
-    .tooltip .tooltiptext.top {
+    #validationModal .tooltip .tooltiptext.top {
         bottom: 125%;
         top: auto;
     }
     
     /* Tooltip abaixo do botão - posição alternativa */
-    .tooltip .tooltiptext.bottom {
+    #validationModal .tooltip .tooltiptext.bottom {
         top: 125%;
         bottom: auto;
     }
     
-    .tooltip .tooltiptext::after {
+    #validationModal .tooltip .tooltiptext::after {
         content: "";
         position: absolute;
         top: 100%;
@@ -152,29 +215,32 @@
     }
     
     /* Seta para tooltip na parte inferior */
-    .tooltip .tooltiptext.bottom::after {
+    #validationModal .tooltip .tooltiptext.bottom::after {
         top: -5px;
         border-color: transparent transparent #172b4d transparent;
     }
     
-    .tooltip:hover .tooltiptext {
+    #validationModal .tooltip:hover .tooltiptext {
         visibility: visible;
         opacity: 1;
     }
 
     /* Responsivo */
     @media (max-width: 768px) {
-        .modal-content { width: 95%; margin: 5% auto; max-width: none; }        
-        .modal-two-columns { flex-direction: column; gap: 15px; }
-        .modal-right-column { border-left: none; border-top: 1px solid #ebecf0; padding-left: 0; padding-top: 15px; }
-        .json-input { min-height: 150px; }
-        .schema-preview { min-height: 150px; max-height: 150px; }
+        #validationModal .modal-content { width: 95%; margin: 5% auto; max-width: none; }        
+        #validationModal .modal-two-columns { flex-direction: column; gap: 15px; }
+        #validationModal .modal-right-column { border-left: none; border-top: 1px solid #ebecf0; padding-left: 0; padding-top: 15px; }
+        #validationModal .json-input { min-height: 150px; }
+        #validationModal .schema-preview { min-height: 150px; max-height: 150px; }
+        #apiDocsModal .api-docs-modal-content { width: 96%; margin: 4% auto; padding: 14px; }
+        #apiDocsModal .api-docs-modal-title { font-size: 18px; }
     }
 </style>
 
 <script>
 // Funções da Modal de Validação
 let currentValidationData = {};
+let currentApiDocLanguage = 'python';
 
 function openValidationModal(collectionName, contractName, version = 'v1.0', method = 'POST') {
     try {
@@ -217,6 +283,7 @@ function openValidationModal(collectionName, contractName, version = 'v1.0', met
         
         // Carregar preview do schema
         loadSchemaPreview();
+        refreshApiDocsIfVisible();
         
     } catch (error) {
         console.error('Erro ao abrir modal:', error);
@@ -259,8 +326,269 @@ function formatValidationJson() {
         const json = JSON.parse(textarea.value);
         textarea.value = JSON.stringify(json, null, 2);
         showValidationResult(true, 'JSON formatado com sucesso!');
+        refreshApiDocsIfVisible();
     } catch (error) {
         showValidationResult(false, 'JSON inválido! Verifique a sintaxe.');
+    }
+}
+
+function openApiDocsModal() {
+    const modal = document.getElementById('apiDocsModal');
+    if (!modal) return;
+
+    const collectionEl = document.getElementById('apiDocsCollectionName');
+    const contractEl = document.getElementById('apiDocsContractName');
+    const versionEl = document.getElementById('apiDocsVersion');
+    const methodEl = document.getElementById('apiDocsMethod');
+
+    if (collectionEl) collectionEl.textContent = currentValidationData.collectionName || '-';
+    if (contractEl) contractEl.textContent = currentValidationData.contractName || '-';
+    if (versionEl) versionEl.textContent = currentValidationData.version || 'v1.0';
+    if (methodEl) methodEl.textContent = currentValidationData.method || 'POST';
+
+    modal.style.display = 'block';
+    renderApiDocExample(currentApiDocLanguage);
+}
+
+function closeApiDocsModal() {
+    const modal = document.getElementById('apiDocsModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function refreshApiDocsIfVisible() {
+    const modal = document.getElementById('apiDocsModal');
+    if (modal && modal.style.display === 'block') {
+        renderApiDocExample(currentApiDocLanguage);
+    }
+}
+
+function getValidationBodyForDocs() {
+    const validationBodyEl = document.getElementById('validationBody');
+    const rawText = validationBodyEl ? validationBodyEl.value.trim() : '';
+
+    if (!rawText) {
+        return {
+            message: "exemplo",
+            data: {
+                id: 123,
+                status: "success"
+            }
+        };
+    }
+
+    try {
+        const cleanJsonText = cleanJsonFromComments(rawText);
+        return JSON.parse(cleanJsonText);
+    } catch (error) {
+        return {
+            message: "exemplo",
+            data: {
+                id: 123,
+                status: "success"
+            }
+        };
+    }
+}
+
+function buildValidationPayloadForDocs() {
+    return {
+        collection_name: currentValidationData.collectionName || 'nome-da-colecao',
+        contract_name: currentValidationData.contractName || 'nome-do-contrato',
+        version: currentValidationData.version || 'v1.0',
+        method: currentValidationData.method || 'POST',
+        body_to_validate: getValidationBodyForDocs()
+    };
+}
+
+function renderApiDocExample(language) {
+    currentApiDocLanguage = language;
+    const collectionName = currentValidationData.collectionName || 'nome-da-colecao';
+    const contractName = currentValidationData.contractName || 'nome-do-contrato';
+    const version = currentValidationData.version || 'v1.0';
+    const method = currentValidationData.method || 'POST';
+    let code = '';
+
+    if (language === 'python') {
+        code = `import requests
+
+url = "http://localhost:5000/contract-validate"
+payload = {
+    "collection_name": "${collectionName}",
+    "contract_name": "${contractName}",
+    "version": "${version}",
+    "method": "${method}",
+    "body_to_validate": {
+        # Aqui você deve colocar o payload JSON
+        # que será comparado com o contrato.
+    }
+}
+
+response = requests.post(url, json=payload, timeout=30)
+print(response.status_code)
+print(response.json())`;
+    } else if (language === 'javascript') {
+        code = `const url = "http://localhost:5000/contract-validate";
+const payload = {
+  collection_name: "${collectionName}",
+  contract_name: "${contractName}",
+  version: "${version}",
+  method: "${method}",
+  body_to_validate: {
+    // Aqui você deve colocar o payload JSON
+    // que será comparado com o contrato.
+  }
+};
+
+const response = await fetch(url, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload)
+});
+
+const result = await response.json();
+console.log(response.status, result);`;
+    } else if (language === 'typescript') {
+        code = `type ValidationPayload = {
+  collection_name: string;
+  contract_name: string;
+  version: string;
+  method: string;
+  body_to_validate: Record<string, unknown>;
+};
+
+const url = "http://localhost:5000/contract-validate";
+const payload: ValidationPayload = {
+  collection_name: "${collectionName}",
+  contract_name: "${contractName}",
+  version: "${version}",
+  method: "${method}",
+  body_to_validate: {
+    // Aqui você deve colocar o payload JSON
+    // que será comparado com o contrato.
+  }
+};
+
+const response = await fetch(url, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload)
+});
+
+const result = await response.json();
+console.log(response.status, result);`;
+    } else if (language === 'java') {
+        code = `import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+public class ContractValidationExample {
+    public static void main(String[] args) throws Exception {
+        // Em body_to_validate, coloque o payload JSON
+        // que será comparado com o contrato.
+        String json = """
+{
+  "collection_name": "${collectionName}",
+  "contract_name": "${contractName}",
+  "version": "${version}",
+  "method": "${method}",
+  "body_to_validate": {}
+}
+""";
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:5000/contract-validate"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        System.out.println(response.statusCode());
+        System.out.println(response.body());
+    }
+}`;
+    } else if (language === 'dotnet') {
+        code = `using System.Net.Http;
+using System.Text;
+using System.Text.Json;
+
+var client = new HttpClient();
+var url = "http://localhost:5000/contract-validate";
+
+var payload = new
+{
+    collection_name = "${collectionName}",
+    contract_name = "${contractName}",
+    version = "${version}",
+    method = "${method}",
+    body_to_validate = new
+    {
+        // Aqui você deve colocar o payload JSON
+        // que será comparado com o contrato.
+    }
+};
+
+var json = JsonSerializer.Serialize(payload);
+var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+var response = await client.PostAsync(url, content);
+var body = await response.Content.ReadAsStringAsync();
+
+Console.WriteLine((int)response.StatusCode);
+Console.WriteLine(body);`;
+    } else if (language === 'curl') {
+        code = `curl -X POST "http://localhost:5000/contract-validate" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "collection_name": "${collectionName}",
+    "contract_name": "${contractName}",
+    "version": "${version}",
+    "method": "${method}",
+    "body_to_validate": {
+      // Aqui você deve colocar o payload JSON
+      // que será comparado com o contrato.
+    }
+  }'`;
+    }
+
+    const codeEl = document.getElementById('apiDocCode');
+    if (codeEl) {
+        codeEl.textContent = code;
+    }
+
+    ['python', 'js', 'ts', 'java', 'dotnet', 'curl'].forEach((langKey) => {
+        const btn = document.getElementById(`api-doc-lang-${langKey}`);
+        if (!btn) return;
+
+        const selectedKeyMap = {
+            javascript: 'js',
+            typescript: 'ts',
+            dotnet: 'dotnet',
+            curl: 'curl',
+            python: 'python',
+            java: 'java'
+        };
+        const selectedKey = selectedKeyMap[language] || language;
+        btn.classList.toggle('active', langKey === selectedKey);
+    });
+}
+
+async function copyApiDocExample() {
+    const codeEl = document.getElementById('apiDocCode');
+    if (!codeEl || !codeEl.textContent) {
+        showValidationResult(false, 'Não há exemplo para copiar no momento.');
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(codeEl.textContent);
+        showValidationResult(true, 'Exemplo copiado para a área de transferência.');
+    } catch (error) {
+        showValidationResult(false, 'Não foi possível copiar automaticamente. Copie manualmente o conteúdo da documentação.');
     }
 }
 
@@ -514,13 +842,22 @@ function closeErrorDetails() {
 
 // Fechar modal ao clicar fora dela
 document.addEventListener('click', function(event) {
+    const validationModal = document.getElementById('validationModal');
+    if (validationModal && event.target === validationModal) {
+        closeModal();
+    }
+
     const detailsModal = document.getElementById('errorDetailsModal');
     if (detailsModal && event.target === detailsModal) {
         closeErrorDetails();
+    }
+
+    const apiDocsModal = document.getElementById('apiDocsModal');
+    if (apiDocsModal && event.target === apiDocsModal) {
+        closeApiDocsModal();
     }
 });
 
 // Funções da Modal de Histórico estão em history_modal.js
 // Funções da Modal de Curl estão em curl_modal.js
-</script>
 </script>

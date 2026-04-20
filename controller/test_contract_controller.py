@@ -352,7 +352,9 @@ def validate_contract():
             message=validation_result.get('error', 'Erro na validação'),
             valid=False,
             validated_data=validation_result.get('validated_data', []),
-            validation_error=validation_result.get('validation_error', None)
+            validation_error=validation_result.get('validation_error', None),
+            version=version,
+            method=method
         )
         
         # Retorna erro no mesmo formato do sucesso, mas com valid: false

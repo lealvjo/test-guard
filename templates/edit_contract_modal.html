@@ -339,10 +339,10 @@
     }
 
     // Fechar modal ao clicar fora dela
-    window.onclick = function(event) {
+    document.addEventListener('click', function(event) {
         const editModal = document.getElementById('editContractModal');
-        if (event.target === editModal) {
+        if (editModal && event.target === editModal) {
             closeEditModal();
         }
-    }
+    });
 </script>

@@ -7,7 +7,7 @@
         </div>
         <div class="modal-body">
             <div class="modal-info">
-                <strong>📁 Coleção:</strong> <span id="modalCollectionName"></span>
+                <strong>📁 Coleção:</strong> <span id="addModalCollectionName"></span>
             </div>
             
             <!-- Campo hidden para armazenar o ID da coleção -->
@@ -387,10 +387,10 @@
     }
 
     // Fechar modal ao clicar fora dele
-    window.onclick = function(event) {
+    document.addEventListener('click', function(event) {
         const modal = document.getElementById('addContractModal');
-        if (event.target === modal) {
+        if (modal && event.target === modal) {
             closeAddContractModal();
         }
-    }
+    });
 </script>

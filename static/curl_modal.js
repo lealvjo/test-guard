@@ -98,6 +98,13 @@ function closeCurlModal() {
     document.getElementById('curlModal').style.display = 'none';
 }
 
+document.addEventListener('click', function(event) {
+    const curlModal = document.getElementById('curlModal');
+    if (curlModal && event.target === curlModal) {
+        closeCurlModal();
+    }
+});
+
 function showCurlResult(message, isSuccess) {
     const resultDiv = document.getElementById('curlResult');
     
