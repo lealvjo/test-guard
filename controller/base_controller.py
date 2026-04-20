@@ -32,9 +32,15 @@ class BaseController:
         Returns:
             tuple: (is_valid, error_response) - se is_valid=False, error_response contém a resposta de erro
         """
+        if data is None:
+            return False, (jsonify({"error": "Body da requisição é obrigatório"}), 400)
+
+        if not isinstance(data, dict):
+            return False, (jsonify({"error": "Body da requisição deve ser um objeto JSON"}), 400)
+
         for field in required_fields:
             if field not in data:
-                return False, jsonify({"error": f"Campo '{field}' é obrigatório"}), 400
+                return False, (jsonify({"error": f"Campo '{field}' é obrigatório"}), 400)
         return True, None
     
     @staticmethod
@@ -51,7 +57,7 @@ class BaseController:
         """
         for param in required_params:
             if param not in request_args:
-                return False, jsonify({"error": f"Parâmetro '{param}' é obrigatório"}), 400
+                return False, (jsonify({"error": f"Parâmetro '{param}' é obrigatório"}), 400)
         return True, None
     
     @staticmethod

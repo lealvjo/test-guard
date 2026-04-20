@@ -56,6 +56,7 @@ def temp_db():
         name TEXT NOT NULL,
         squad TEXT,
         schemas TEXT NOT NULL,
+        repository_url TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )''')
     
@@ -89,6 +90,7 @@ def sample_automation_data():
     return {
         'name': 'Test Automation',
         'squad': 'Test Squad',
+        'type': 'Backend',
         'description': 'Automation for testing purposes',
         'language': 'Python',
         'cucumber': 'BDD',
@@ -101,15 +103,21 @@ def sample_automation_data():
 def sample_contract_data():
     """Dados de exemplo para um contrato"""
     return {
+        'id': 1,
         'name': 'Test Contract Collection',
         'squad': 'Test Squad',
+        'repository_url': 'https://github.com/test/contracts',
         'schemas': [
             {
                 'contract': 'UserContract',
                 'expected': {
-                    'id': 'integer',
-                    'name': 'string',
-                    'email': 'string'
+                    'type': 'object',
+                    'properties': {
+                        'id': {'type': 'integer'},
+                        'name': {'type': 'string'},
+                        'email': {'type': 'string'}
+                    },
+                    'required': ['id', 'name', 'email']
                 },
                 'version': 'v1'
             }

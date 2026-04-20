@@ -30,6 +30,7 @@ class TestAutomationService:
         service.register_automation(
             data['name'],
             data['squad'],
+            data['type'],
             data['description'],
             data['language'],
             data['cucumber'],
@@ -43,9 +44,9 @@ class TestAutomationService:
             data['name'], data['squad'], data['git']
         )
         service.repository.insert_automation.assert_called_once_with(
-            data['name'], data['squad'], data['description'],
-            data['language'], data['cucumber'], data['launch_date'],
-            data['git'], data['image_base64']
+            data['name'], data['squad'], data['type'],
+            data['description'], data['language'], data['cucumber'],
+            data['launch_date'], data['git'], data['image_base64']
         )
     
     def test_register_automation_duplicate(self, service, sample_automation_data):
@@ -67,6 +68,7 @@ class TestAutomationService:
             service.register_automation(
                 data['name'],
                 data['squad'],
+                data['type'],
                 data['description'],
                 data['language'],
                 data['cucumber'],
@@ -188,6 +190,7 @@ class TestContractService:
         assert validated_data['name'] == sample_contract_data['name']
         assert validated_data['squad'] == sample_contract_data['squad']
         assert validated_data['schemas'] == sample_contract_data['schemas']
+        assert validated_data['repository_url'] == sample_contract_data['repository_url']
     
     def test_validate_contract_data_missing_fields(self, service):
         """Testa a validação com campos obrigatórios faltando"""
@@ -281,6 +284,7 @@ class TestContractService:
         assert result_data['message'] == 'Coleção de contratos salva com sucesso!'
         assert result_data['received_data']['name'] == sample_contract_data['name']
         assert result_data['received_data']['squad'] == sample_contract_data['squad']
+        assert result_data['received_data']['repository_url'] == sample_contract_data['repository_url']
         assert result_data['received_data']['schemas_count'] == len(sample_contract_data['schemas'])
         
         # Verifica se o repository foi chamado
@@ -552,7 +556,8 @@ class TestReportService:
             '2024-01-01T10:00:00',
             'Test Automation',
             'Test Squad',
-            json.dumps(data['tests'])
+            json.dumps(data['tests']),
+            None
         )
     
     def test_fetch_all_reports(self, service):
