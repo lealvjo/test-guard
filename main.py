@@ -16,3 +16,4 @@ if __name__ == '__main__':
     # No runner interativo do Cursor/IPython, o reloader do Flask pode gerar
     # "SystemExit: 1" ao reiniciar o processo. Mantemos debug ligado, mas sem reloader.
     app.run(debug=True, use_reloader=False)
+    

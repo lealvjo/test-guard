@@ -4,7 +4,7 @@ from fuzzywuzzy import process
 
 
 class ReportRepository:
-    def __init__(self, db_path='reports_automationsssss.db', automations_db_path='automations.db'):
+    def __init__(self, db_path='reports_automations.db', automations_db_path='automations.db'):
         self.db_path = db_path
         self.automations_db_path = automations_db_path
         self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
