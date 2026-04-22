@@ -1,0 +1,28 @@
+---
+description: Padrões do projeto para backend/frontend e refatoração segura
+alwaysApply: true
+---
+
+# Padrões do Projeto (Test Guard)
+
+- Responder e comentar em português.
+- Preservar comportamento existente: refatorar sem regressão funcional.
+- Front-end: evitar JavaScript inline em templates; preferir arquivos em `static/js/pages` e `static/js/modals`.
+- Front-end: estrutura de modal em `templates` e lógica em `static/js/modals`.
+- Reutilizar utilitários compartilhados antes de duplicar função (`static/js/utils` e `static/js/global.js`).
+- Para mudanças de UI, preferir ajustes discretos e consistentes com o visual atual.
+- API: erros de validação de entrada devem retornar `400`, não `500`.
+- Nunca remover/reverter alterações do usuário sem solicitação explícita.
+- Após mudanças relevantes, rodar validação mínima:
+  - testes (`pytest`)
+  - lint dos arquivos alterados.
+- Em documentação de API no front, incluir exemplos de request e de resposta (sucesso/erro) quando aplicável.
+
+# Convenções de Refatoração
+
+- Fazer mudanças incrementais e pequenas, com fácil rollback.
+- Nomear arquivos JS em `kebab-case`.
+- Manter separação:
+  - `templates`: marcação/estrutura
+  - `static/js`: comportamento
+  - `static/js/utils`: funções compartilhadas

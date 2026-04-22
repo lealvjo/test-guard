@@ -86,6 +86,24 @@
                 </div>
                 <pre id="apiDocCode" class="api-docs-code"></pre>
             </div>
+            <div class="api-docs-section">
+                <div class="api-docs-header">
+                    <h4>Exemplos de retorno</h4>
+                </div>
+                <p class="api-docs-description">
+                    Respostas comuns da API para sucesso (<code>200</code>) e erro de validação (<code>400</code>).
+                </p>
+                <div class="api-docs-response-grid">
+                    <div class="api-docs-response-item">
+                        <div class="api-docs-response-title">✅ Sucesso (200)</div>
+                        <pre id="apiDocResponseSuccess" class="api-docs-code"></pre>
+                    </div>
+                    <div class="api-docs-response-item">
+                        <div class="api-docs-response-title">❌ Erro de validação (400)</div>
+                        <pre id="apiDocResponseError" class="api-docs-code"></pre>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -163,6 +181,9 @@
     #apiDocsModal .btn-lang { background: #ebecf0; color: #172b4d; border: 1px solid #dfe1e6; border-radius: 4px; padding: 6px 10px; font-size: 12px; cursor: pointer; }
     #apiDocsModal .btn-lang.active { background: #0065ff; color: #ffffff; border-color: #0065ff; }
     #apiDocsModal .api-docs-code { margin: 0; max-height: 62vh; overflow: auto; background: #172b4d; color: #dfe1e6; border-radius: 6px; padding: 12px; font-size: 12px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
+    #apiDocsModal .api-docs-response-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    #apiDocsModal .api-docs-response-item { display: flex; flex-direction: column; gap: 8px; }
+    #apiDocsModal .api-docs-response-title { font-size: 13px; font-weight: 600; color: #172b4d; }
 
     /* Tooltips Bonitos */
     #validationModal .tooltip {
@@ -234,6 +255,7 @@
         #validationModal .schema-preview { min-height: 150px; max-height: 150px; }
         #apiDocsModal .api-docs-modal-content { width: 96%; margin: 4% auto; padding: 14px; }
         #apiDocsModal .api-docs-modal-title { font-size: 18px; }
+        #apiDocsModal .api-docs-response-grid { grid-template-columns: 1fr; }
     }
 </style>
 

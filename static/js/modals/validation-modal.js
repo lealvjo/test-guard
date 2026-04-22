@@ -118,6 +118,49 @@ function refreshApiDocsIfVisible() {
     }
 }
 
+function renderApiResponseExamples() {
+    const collectionName = currentValidationData.collectionName || 'nome-da-colecao';
+    const contractName = currentValidationData.contractName || 'nome-do-contrato';
+    const version = currentValidationData.version || 'v1.0';
+    const method = currentValidationData.method || 'POST';
+
+    const successExample = {
+        valid: true,
+        message: 'Validação bem-sucedida!',
+        contract_context: {
+            collection_name: collectionName,
+            contract_name: contractName,
+            version: version,
+            method: method
+        }
+    };
+
+    const errorExample = {
+        valid: false,
+        message: 'Erro de validação',
+        validation_error: {
+            message: "123 is not of type 'string'",
+            path: 'data.id'
+        },
+        contract_context: {
+            collection_name: collectionName,
+            contract_name: contractName,
+            version: version,
+            method: method
+        }
+    };
+
+    const successEl = document.getElementById('apiDocResponseSuccess');
+    const errorEl = document.getElementById('apiDocResponseError');
+
+    if (successEl) {
+        successEl.textContent = JSON.stringify(successExample, null, 2);
+    }
+    if (errorEl) {
+        errorEl.textContent = JSON.stringify(errorExample, null, 2);
+    }
+}
+
 function renderApiDocExample(language) {
     currentApiDocLanguage = language;
     const collectionName = currentValidationData.collectionName || 'nome-da-colecao';
@@ -275,6 +318,8 @@ Console.WriteLine(body);`;
     if (codeEl) {
         codeEl.textContent = code;
     }
+
+    renderApiResponseExamples();
 
     ['python', 'js', 'ts', 'java', 'dotnet', 'curl'].forEach((langKey) => {
         const btn = document.getElementById(`api-doc-lang-${langKey}`);

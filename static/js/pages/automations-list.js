@@ -96,7 +96,10 @@ function displayAutomations(automations) {
 
         cardDiv.innerHTML = `
             ${imageHtml}
-            <div class="card-title">📝 ${automation.name}</div>
+            <div class="card-title-row">
+                <div class="card-title">📝 ${automation.name}</div>
+                <button class="btn-doc-api-mini" title="Gerar relatórios para esta automação" aria-label="Gerar relatórios para esta automação">📘</button>
+            </div>
             <div class="card-meta">
                 <strong>🆔 ID:</strong> ${automation.id}
             </div>
@@ -122,6 +125,11 @@ function displayAutomations(automations) {
                 ${automation.git ? `<a href="${automation.git}" class="btn-repo" target="_blank">🔗 Abrir Repositório</a>` : '<span style="color: #5e6c84; font-size: 12px;">🔗 Sem repositório</span>'}
             </div>
         `;
+
+        const docsButton = cardDiv.querySelector('.btn-doc-api-mini');
+        if (docsButton) {
+            docsButton.addEventListener('click', () => openAutomationApiDocsModal(automation));
+        }
 
         container.appendChild(cardDiv);
     });

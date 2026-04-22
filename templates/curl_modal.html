@@ -1,0 +1,101 @@
+<!-- Modal de Validação Automática com Curl -->
+<div id="curlModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">🚀 Validação Automática</h3>
+            <span class="close" onclick="closeCurlModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="modal-info">
+                <strong>📁 Coleção:</strong> <span id="curlModalCollectionName"></span><br>
+                <strong>📄 Contrato:</strong> <span id="curlModalContractName"></span><br>
+                <strong>ℹ️ Instrução:</strong> Cole o comando curl abaixo. O response body será extraído automaticamente e preenchido no campo de validação.
+            </div>
+
+            <div class="security-notice">
+                <div class="security-icon">🔒</div>
+                <div class="security-text">
+                    <strong>Segurança:</strong> Por motivos de segurança da organização, os comandos curl não são armazenados em nenhum banco de dados ou log. Eles são executados apenas em memória e descartados após o uso.
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label for="curlCommand" style="display: block; margin-bottom: 8px; font-weight: 600; color: #172b4d;">🔗 Comando Curl:</label>
+                <textarea id="curlCommand" class="curl-input" placeholder='curl -X POST https://api.exemplo.com/endpoint \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer token123" \
+  -d "{\"param\": \"value\"}"'></textarea>
+            </div>
+
+            <div id="curlResult" class="curl-result" style="display: none;"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeCurlModal()">❌ Cancelar</button>
+            <button class="btn btn-primary" onclick="executeCurl()">🚀 Executar Curl</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .security-notice {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin: 20px 0;
+        padding: 15px;
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 1px solid #ffc107;
+        border-radius: 8px;
+        border-left: 4px solid #ffc107;
+    }
+
+    .security-icon {
+        font-size: 20px;
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    .security-text {
+        font-size: 13px;
+        line-height: 1.4;
+        color: #856404;
+    }
+
+    .security-text strong {
+        color: #6c5a00;
+        font-weight: 600;
+    }
+
+    .curl-input {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 13px;
+        height: 150px;
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #dfe1e6;
+        border-radius: 6px;
+        background-color: #fafbfc;
+        resize: vertical;
+    }
+
+    .curl-result {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 6px;
+        font-size: 14px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+    }
+
+    .curl-success {
+        background-color: #e3fcef;
+        color: #006644;
+        border: 1px solid #b7ebc6;
+    }
+
+    .curl-error {
+        background-color: #ffebe6;
+        color: #bf2600;
+        border: 1px solid #ffbdad;
+    }
+</style>

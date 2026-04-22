@@ -1,0 +1,1 @@
+Continue este projeto usando o contexto de docs/ai-context.md e seguindo as regras de .cursor/rules/project-standards.mdc. Responda em português e mantenha o padrão atual de refatoração incremental.
